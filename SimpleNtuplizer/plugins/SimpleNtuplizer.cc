@@ -24,6 +24,9 @@
 #include <memory>
 #include <vector>
 
+#include <typeinfo>
+
+
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
@@ -80,6 +83,7 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         //virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
         //virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
 
+        // Define methods
         bool checkAncestor(const reco::Candidate *gen, int ancestorPid);
         int matchToTruth(const pat::Electron &el, const edm::Handle<edm::View<reco::GenParticle>>  &prunedGenParticles);
         void findFirstNonElectronMother(const reco::Candidate *particle, int &ancestorPID, int &ancestorStatus);
@@ -106,6 +110,13 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         Int_t nPV_;        // number of reconsrtucted primary vertices
         Float_t rho_;      // the rho variable
 
+        // From example code, nVtx needed:
+        // evt.getByToken(vtxToken_, vtxH_);
+        // nVtx_ = vtxH_->size();
+
+        // --> Have to check if naming scheme does not run into problems
+
+
         // all electron variables
         Int_t nElectrons_;
 
@@ -129,6 +140,41 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         std::vector<Int_t>   passConversionVeto_;     
         std::vector<Int_t>   isTrueElectron_;
         std::vector<Int_t>   isTrueElectronAlternative_; 
+
+
+        //######################################
+        // Variables from Thomas
+        //######################################
+
+        std::vector<Float_t> rawEnergySC_;
+
+        std::vector<Float_t> etaWidthSC_;
+        std::vector<Float_t> phiWidthSC_;
+        
+        std::vector<Float_t> r9SS_;
+
+        std::vector<Float_t> seedEnergySS_;
+
+        std::vector<Float_t> eMaxSS_;
+        std::vector<Float_t> e2ndSS_;
+
+        std::vector<Float_t> eHorizontalSS_;
+        std::vector<Float_t> eVerticalSS_;
+
+        std::vector<Float_t> sigmaIetaIetaSS_;
+        std::vector<Float_t> sigmaIetaIphiSS_;
+        std::vector<Float_t> sigmaIphiIphiSS_;
+
+        std::vector<Int_t> numberOfClustersSC_;
+
+
+        // For the cluster variables
+
+        std::vector<Float_t> MaxDRclusterDR_;
+        std::vector<Float_t> MaxDRclusterDPhi_;
+        std::vector<Float_t> MaxDRclusterDEta_;
+        std::vector<Float_t> MaxDRclusterRawEnergy_;
+
     };
 
 
@@ -153,36 +199,56 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     // Making tree and setting branches
     electronTree_ = fs->make<TTree> ("ElectronTree", "Electron data");
 
-    electronTree_->Branch("pvNTracks"    ,  &pvNTracks_ , "pvNTracks/I");
+    // electronTree_->Branch( "pvNTracks",  &pvNTracks_ , "pvNTracks/I");
+    electronTree_->Branch( "nPV",  &nPV_     , "nPV/I");
+    // electronTree_->Branch( "nPU",  &nPU_     , "nPU/I");
+    // electronTree_->Branch( "nPUTrue",  &nPUTrue_ , "nPUTrue/I");
+    // electronTree_->Branch( "rho",  &rho_ , "rho/F");
+    electronTree_->Branch( "nEle",  &nElectrons_ , "nEle/I");
+    // electronTree_->Branch( "pt",  &pt_    );
+    // electronTree_->Branch( "dEtaIn",  &dEtaIn_);
+    // electronTree_->Branch( "dPhiIn",  &dPhiIn_);
+    // electronTree_->Branch( "hOverE",  &hOverE_);
+    // electronTree_->Branch( "sigmaIetaIeta",         &sigmaIetaIeta_);
+    // electronTree_->Branch( "full5x5_sigmaIetaIeta", &full5x5_sigmaIetaIeta_);
+    // electronTree_->Branch( "isoChargedHadrons", &isoChargedHadrons_);
+    // electronTree_->Branch( "isoNeutralHadrons", &isoNeutralHadrons_);
+    // electronTree_->Branch( "isoPhotons", &isoPhotons_);
+    // electronTree_->Branch( "isoChargedFromPU", &isoChargedFromPU_);
+    // electronTree_->Branch( "relIsoWithDBeta", &relIsoWithDBeta_);
+    // electronTree_->Branch( "ooEmooP", &ooEmooP_);
+    // electronTree_->Branch( "d0", &d0_);
+    // electronTree_->Branch( "dz", &dz_);
+    // electronTree_->Branch( "expectedMissingInnerHits", &expectedMissingInnerHits_);
+    // electronTree_->Branch( "passConversionVeto", &passConversionVeto_);
+    // electronTree_->Branch( "isTrueElectron", &isTrueElectron_);
+    // electronTree_->Branch( "isTrueElectronAlternative", &isTrueElectronAlternative_);
 
-    electronTree_->Branch("nPV"        ,  &nPV_     , "nPV/I");
-    electronTree_->Branch("nPU"        ,  &nPU_     , "nPU/I");
-    electronTree_->Branch("nPUTrue"    ,  &nPUTrue_ , "nPUTrue/I");
-    electronTree_->Branch("rho"        ,  &rho_ , "rho/F");
+    electronTree_->Branch( "etaSC",               &etaSC_ );
+    electronTree_->Branch( "phiSC",               &phiSC_ );
+    electronTree_->Branch( "rawEnergySC_",        &rawEnergySC_ );
+    electronTree_->Branch( "etaWidthSC_",         &etaWidthSC_ );
+    electronTree_->Branch( "phiWidthSC_",         &phiWidthSC_ );
+    electronTree_->Branch( "r9SS_",               &r9SS_ );
+    electronTree_->Branch( "seedEnergySS_",       &seedEnergySS_ );
+    electronTree_->Branch( "eMaxSS_",             &eMaxSS_ );
+    electronTree_->Branch( "e2ndSS_",             &e2ndSS_ );
+    electronTree_->Branch( "eHorizontalSS_",      &eHorizontalSS_ );
+    electronTree_->Branch( "eVerticalSS_",        &eVerticalSS_ );
+    electronTree_->Branch( "sigmaIetaIetaSS_",    &sigmaIetaIetaSS_ );
+    electronTree_->Branch( "sigmaIetaIphiSS_",    &sigmaIetaIphiSS_ );
+    electronTree_->Branch( "sigmaIphiIphiSS_",    &sigmaIphiIphiSS_ );
+    electronTree_->Branch( "numberOfClustersSC_", &numberOfClustersSC_ );
 
-    electronTree_->Branch("nEle"    ,  &nElectrons_ , "nEle/I");
-    electronTree_->Branch("pt"    ,  &pt_    );
-    electronTree_->Branch("etaSC" ,  &etaSC_ );
-    electronTree_->Branch("phiSC" ,  &phiSC_ );
-    electronTree_->Branch("dEtaIn",  &dEtaIn_);
-    electronTree_->Branch("dPhiIn",  &dPhiIn_);
-    electronTree_->Branch("hOverE",  &hOverE_);
-    electronTree_->Branch("sigmaIetaIeta",         &sigmaIetaIeta_);
-    electronTree_->Branch("full5x5_sigmaIetaIeta", &full5x5_sigmaIetaIeta_);
-    electronTree_->Branch("isoChargedHadrons"      , &isoChargedHadrons_);
-    electronTree_->Branch("isoNeutralHadrons"      , &isoNeutralHadrons_);
-    electronTree_->Branch("isoPhotons"             , &isoPhotons_);
-    electronTree_->Branch("isoChargedFromPU"       , &isoChargedFromPU_);
-    electronTree_->Branch("relIsoWithDBeta"        , &relIsoWithDBeta_);
-    electronTree_->Branch("ooEmooP", &ooEmooP_);
-    electronTree_->Branch("d0"     , &d0_);
-    electronTree_->Branch("dz"     , &dz_);
-    electronTree_->Branch("expectedMissingInnerHits", &expectedMissingInnerHits_);
-    electronTree_->Branch("passConversionVeto", &passConversionVeto_);
-    electronTree_->Branch("isTrueElectron"    , &isTrueElectron_);
-    electronTree_->Branch("isTrueElectronAlternative"    , &isTrueElectronAlternative_);
+
+    // Cluster variables
+    electronTree_->Branch( "MaxDRclusterDR_",        &MaxDRclusterDR_ );
+    electronTree_->Branch( "MaxDRclusterDPhi_",      &MaxDRclusterDPhi_ );
+    electronTree_->Branch( "MaxDRclusterDEta_",      &MaxDRclusterDEta_ );
+    electronTree_->Branch( "MaxDRclusterRawEnergy_", &MaxDRclusterRawEnergy_ );
 
     }
+
 
 // Deconstructor
 SimpleNtuplizer::~SimpleNtuplizer() {
@@ -313,103 +379,324 @@ void SimpleNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
     isTrueElectron_.clear();
     isTrueElectronAlternative_.clear(); 
 
+    rawEnergySC_.clear();
+    etaWidthSC_.clear();
+    phiWidthSC_.clear();
+    r9SS_.clear();
+    seedEnergySS_.clear();
+    eMaxSS_.clear();
+    e2ndSS_.clear();
+    eHorizontalSS_.clear();
+    eVerticalSS_.clear();
+    sigmaIetaIetaSS_.clear();
+    sigmaIetaIphiSS_.clear();
+    sigmaIphiIphiSS_.clear();
+    numberOfClustersSC_.clear();
+
+    // Cluster variables
+    MaxDRclusterDR_.clear();
+    MaxDRclusterDPhi_.clear();
+    MaxDRclusterDEta_.clear();
+    MaxDRclusterRawEnergy_.clear();
+
+
+
+    double rawEnergy;       // Raw energy of the super cluster per electron
+    int numberOfClusters;   // Number of (sub)clusters in the super cluster
+
     // Loop over electrons
     for (const pat::Electron &el : *electrons) {
 
         // Simple pt cut
         if( el.pt() < 10 ) continue;
 
-
-        // =====================================
-        // Basic quantities
+        printf( "\n-----------------------------------\n" );
+        printf( "Analyzing electron %d\n", nElectrons_ );
 
         // Increase count of electrons in event
         nElectrons_++;
 
-        // Push back values for pt, eta and phi
-        pt_.push_back( el.pt() );
-        etaSC_.push_back( el.superCluster()->eta() );
-        phiSC_.push_back( el.superCluster()->phi() );
+        // Open variable superCluster
+        const reco::SuperClusterRef& superCluster = el.superCluster();
 
-        // ID and matching
-        dEtaIn_.push_back(                el.deltaEtaSuperClusterTrackAtVtx() );
-        dPhiIn_.push_back(                el.deltaPhiSuperClusterTrackAtVtx() );
-        hOverE_.push_back(                el.hcalOverEcal() );
-        sigmaIetaIeta_.push_back(         el.sigmaIetaIeta() );
-        full5x5_sigmaIetaIeta_.push_back( el.full5x5_sigmaIetaIeta() );
+        // Raw energy of the super cluster per electron
+        rawEnergy = superCluster->rawEnergy();
+        rawEnergySC_     .push_back( rawEnergy );
 
-        // |1/E-1/p| = |1/E - EoverPinner/E| is computed below
-        // The if protects against ecalEnergy == inf or zero
-        // (always the case for miniAOD for electrons <5 GeV)
-        if( el.ecalEnergy() == 0 ){
-            printf("Electron energy is zero!\n");
-            ooEmooP_.push_back( 1e30 );
+        //pt_.push_back( el.pt() );
+        etaSC_           .push_back( superCluster->eta() );
+        phiSC_           .push_back( superCluster->phi() );
+        etaWidthSC_      .push_back( superCluster->etaWidth() );
+        phiWidthSC_      .push_back( superCluster->phiWidth() );
+
+        r9SS_            .push_back( el.showerShape().r9 );
+
+        //theseed->energy()/raw_energy
+        seedEnergySS_    .push_back( superCluster->seed()->energy() / rawEnergy );
+
+        eMaxSS_          .push_back( el.showerShape().eMax / rawEnergy );
+        e2ndSS_          .push_back( el.showerShape().e2nd / rawEnergy );
+
+        eHorizontalSS_   .push_back(
+            el.showerShape().eLeft + el.showerShape().eRight != 0.f  
+            ? ( el.showerShape().eLeft - el.showerShape().eRight ) /
+                ( el.showerShape().eLeft + el.showerShape().eRight ) : 0.f  );
+
+        eVerticalSS_     .push_back(
+            el.showerShape().eTop + el.showerShape().eBottom != 0.f  
+            ? ( el.showerShape().eTop - el.showerShape().eBottom ) /
+                ( el.showerShape().eTop + el.showerShape().eBottom ) : 0.f  );
+
+        sigmaIetaIetaSS_ .push_back( el.showerShape().sigmaIetaIeta );
+        sigmaIetaIphiSS_ .push_back( el.showerShape().sigmaIetaIphi );
+        sigmaIphiIphiSS_ .push_back( el.showerShape().sigmaIphiIphi );
+
+        numberOfClusters = std::max( 0, int (superCluster->clusters().size()) );
+        numberOfClustersSC_ .push_back( numberOfClusters );
+
+        // std::cout << "Found etaWidthSC_ = " << etaWidthSC_[ etaWidthSC_.size()-1 ] << std::endl;
+        // std::cout << "Found phiWidthSC_ = " << phiWidthSC_[ phiWidthSC_.size()-1 ] << std::endl;
+
+        // std::cout << "Found sigmaIetaIetaSS_ = "
+        //           << sigmaIetaIetaSS_[ sigmaIetaIetaSS_.size()-1 ]
+        //           << std::endl;
+
+        // std::cout << "Found eHorizontalSS_ = "
+        //           << eHorizontalSS_[ eHorizontalSS_.size()-1 ]
+        //           << std::endl;
+
+
+        // =====================================
+        // Cluster variables (subs of the superCluster)
+
+        // --> HIER VERDER
+        // die max 3 is wrs beter variabel te maken, en dan gewoon push_back gebruiken
+        // naar die vectors i.p.v. direct setten (wat nu gebeurt)
+
+        // Open vectors that contain a quantity per cluster (waarom max 3?)
+        std::vector<float> clusterRawEnergy;
+        //clusterRawEnergy.resize( std::max(3, numberOfClusters), 0);
+        std::vector<float> clusterDEtaToSeed;
+        //clusterDEtaToSeed.resize(std::max(3, numberOfClusters), 0);
+        std::vector<float> clusterDPhiToSeed;
+        //clusterDPhiToSeed.resize(std::max(3, numberOfClusters), 0);
+
+        // Default values
+        float MaxDRclusterDR        = 999.;
+        float MaxDRclusterDPhi      = 999.;
+        float MaxDRclusterDEta      = 999.;
+        float MaxDRclusterRawEnergy = 0.;
+
+
+        // ---------------------------
+        // Looping over clusters
+
+        size_t i_cluster = 0;
+        
+        // Current maximum deltaR; initially 0.0
+        float maxDR = 0;
+        
+        // Define cluster
+        edm::Ptr<reco::CaloCluster> cluster;
+        
+        // Loop over all clusters that aren't the seed  
+        for( auto pcluster = superCluster->clustersBegin(); pcluster != superCluster->clustersEnd(); ++pcluster ) {
+            
+            cout << "  Currently in cluster " << i_cluster << endl;
+
+            // Dereference to get the actual object
+            cluster = *pcluster;
+
+            // Continue if this is the seed
+            if( cluster == superCluster->seed() ) continue;
+
+            // Set basic cluster quantities in vectors
+            clusterRawEnergy  .push_back( cluster->energy() );
+            clusterDPhiToSeed .push_back( reco::deltaPhi( cluster->phi(), superCluster->seed()->phi() ) );
+            clusterDEtaToSeed .push_back( cluster->eta() - superCluster->seed()->eta() );
+
+            // Find the cluster that has maximum deltaR to the seed
+            const auto deltaR = reco::deltaR( *cluster, *superCluster->seed() );
+            if( deltaR > maxDR) {
+                maxDR = deltaR;
+                MaxDRclusterDR        = maxDR;
+                MaxDRclusterDPhi      = clusterDPhiToSeed[i_cluster];
+                MaxDRclusterDEta      = clusterDEtaToSeed[i_cluster];
+                MaxDRclusterRawEnergy = clusterRawEnergy[i_cluster];
+                }
+
+            i_cluster++;
+            // Misschien een break als i_cluster > cut-1 ?
             }
-        else if( !std::isfinite(el.ecalEnergy()) ){
-            printf("Electron energy is not finite!\n");
-            ooEmooP_.push_back( 1e30 );
+
+        // Write cluster variables to class member vectors
+        if( i_cluster > 0 ) {
+            MaxDRclusterDR_        .push_back( MaxDRclusterDR );    
+            MaxDRclusterDPhi_      .push_back( MaxDRclusterDPhi );    
+            MaxDRclusterDEta_      .push_back( MaxDRclusterDEta );    
+            MaxDRclusterRawEnergy_ .push_back( MaxDRclusterRawEnergy );    
             }
-        else{
-            ooEmooP_.push_back( fabs(1.0/el.ecalEnergy() - el.eSuperClusterOverP()/el.ecalEnergy() ) );
-            }
+
+
+
+        // =======================================================================================
+        // From example code
+
+        // // calculate sub-cluster variables
+        // std::vector<float> clusterRawEnergy;
+        // clusterRawEnergy.resize(std::max(3, numberOfClusters), 0);
+        // std::vector<float> clusterDEtaToSeed;
+        // clusterDEtaToSeed.resize(std::max(3, numberOfClusters), 0);
+        // std::vector<float> clusterDPhiToSeed;
+        // clusterDPhiToSeed.resize(std::max(3, numberOfClusters), 0);
+        // float clusterMaxDR     = 999.;
+        // float clusterMaxDRDPhi = 999.;
+        // float clusterMaxDRDEta = 999.;
+        // float clusterMaxDRRawEnergy = 0.;
+
+        // size_t iclus = 0;
+        // float maxDR = 0;
+        // edm::Ptr<reco::CaloCluster> pclus;
+        // // loop over all clusters that aren't the seed  
+        // auto clusend = the_sc->clustersEnd();
+        // for( auto clus = the_sc->clustersBegin(); clus != clusend; ++clus ) {
+        // pclus = *clus;
+
+        // if(theseed == pclus ) 
+        //   continue;
+        // clusterRawEnergy[iclus]  = pclus->energy();
+        // clusterDPhiToSeed[iclus] = reco::deltaPhi(pclus->phi(),theseed->phi());
+        // clusterDEtaToSeed[iclus] = pclus->eta() - theseed->eta();
+
+        // // find cluster with max dR
+        // const auto the_dr = reco::deltaR(*pclus, *theseed);
+        // if(the_dr > maxDR) {
+        //   maxDR = the_dr;
+        //   clusterMaxDR = maxDR;
+        //   clusterMaxDRDPhi = clusterDPhiToSeed[iclus];
+        //   clusterMaxDRDEta = clusterDEtaToSeed[iclus];
+        //   clusterMaxDRRawEnergy = clusterRawEnergy[iclus];
+        // }      
+        // ++iclus;
+        // }
+
+        // eval[16] = clusterMaxDR;
+        // eval[17] = clusterMaxDRDPhi;
+        // eval[18] = clusterMaxDRDEta;
+        // eval[19] = clusterMaxDRRawEnergy/raw_energy;
+        // eval[20] = clusterRawEnergy[0]/raw_energy;
+        // eval[21] = clusterRawEnergy[1]/raw_energy;
+        // eval[22] = clusterRawEnergy[2]/raw_energy;
+        // eval[23] = clusterDPhiToSeed[0];
+        // eval[24] = clusterDPhiToSeed[1];
+        // eval[25] = clusterDPhiToSeed[2];
+        // eval[26] = clusterDEtaToSeed[0];
+        // eval[27] = clusterDEtaToSeed[1];
+        // eval[28] = clusterDEtaToSeed[2];
+
+        // // calculate coordinate variables
+        // const bool iseb = ele.isEB();  
+        // float dummy;
+        // int iPhi;
+        // int iEta;
+        // float cryPhi;
+        // float cryEta;
+        // EcalClusterLocal _ecalLocal;
+        // if (ele.isEB()) 
+        // _ecalLocal.localCoordsEB(*theseed, *iSetup_, cryEta, cryPhi, iEta, iPhi, dummy, dummy);
+        // else 
+        // _ecalLocal.localCoordsEE(*theseed, *iSetup_, cryEta, cryPhi, iEta, iPhi, dummy, dummy);
+
+        // if (iseb) {
+        // eval[29] = cryEta;
+        // eval[30] = cryPhi;
+        // eval[31] = iEta;
+        // eval[32] = iPhi;
+        // } else {
+        // eval[29] = the_sc->preshowerEnergy()/the_sc->rawEnergy();
+        // }
+
+
+        // =======================================================================================
+        // Original code
+
+        // // ID and matching
+        // dEtaIn_.push_back(                el.deltaEtaSuperClusterTrackAtVtx() );
+        // dPhiIn_.push_back(                el.deltaPhiSuperClusterTrackAtVtx() );
+        // hOverE_.push_back(                el.hcalOverEcal() );
+        // sigmaIetaIeta_.push_back(         el.sigmaIetaIeta() );
+        // full5x5_sigmaIetaIeta_.push_back( el.full5x5_sigmaIetaIeta() );
+
+        // // |1/E-1/p| = |1/E - EoverPinner/E| is computed below
+        // // The if protects against ecalEnergy == inf or zero
+        // // (always the case for miniAOD for electrons <5 GeV)
+        // if( el.ecalEnergy() == 0 ){
+        //     printf("Electron energy is zero!\n");
+        //     ooEmooP_.push_back( 1e30 );
+        //     }
+        // else if( !std::isfinite(el.ecalEnergy()) ){
+        //     printf("Electron energy is not finite!\n");
+        //     ooEmooP_.push_back( 1e30 );
+        //     }
+        // else{
+        //     ooEmooP_.push_back( fabs(1.0/el.ecalEnergy() - el.eSuperClusterOverP()/el.ecalEnergy() ) );
+        //     }
 
 
         // =====================================
         // Isolation
         
-        GsfElectron::PflowIsolationVariables pfIso = el.pfIsolationVariables();
+        // GsfElectron::PflowIsolationVariables pfIso = el.pfIsolationVariables();
 
-        // Compute isolation with delta beta correction for PU
-        isoChargedHadrons_.push_back( pfIso.sumChargedHadronPt );
-        isoNeutralHadrons_.push_back( pfIso.sumNeutralHadronEt );
-        isoPhotons_.push_back( pfIso.sumPhotonEt );
-        isoChargedFromPU_.push_back( pfIso.sumPUPt );
+        // // Compute isolation with delta beta correction for PU
+        // isoChargedHadrons_.push_back( pfIso.sumChargedHadronPt );
+        // isoNeutralHadrons_.push_back( pfIso.sumNeutralHadronEt );
+        // isoPhotons_.push_back( pfIso.sumPhotonEt );
+        // isoChargedFromPU_.push_back( pfIso.sumPUPt );
         
-        float absiso = pfIso.sumChargedHadronPt 
-            + max(0.0 , pfIso.sumNeutralHadronEt + pfIso.sumPhotonEt - 0.5 * pfIso.sumPUPt );
+        // float absiso = pfIso.sumChargedHadronPt 
+        //     + max(0.0 , pfIso.sumNeutralHadronEt + pfIso.sumPhotonEt - 0.5 * pfIso.sumPUPt );
 
-        relIsoWithDBeta_.push_back( absiso/el.pt() );
+        // relIsoWithDBeta_.push_back( absiso/el.pt() );
 
 
         // =====================================
         // Impact parameter
 
-        d0_.push_back( (-1) * el.gsfTrack()->dxy(firstGoodVertex->position() ) );
-        dz_.push_back( el.gsfTrack()->dz( firstGoodVertex->position() ) );
-        // printf("     dz= %f\n", dz_);
+        // d0_.push_back( (-1) * el.gsfTrack()->dxy(firstGoodVertex->position() ) );
+        // dz_.push_back( el.gsfTrack()->dz( firstGoodVertex->position() ) );
+        // // printf("     dz= %f\n", dz_);
 
-        cout << ">>>>   After impact parameter" << endl;
+        // cout << ">>>>   After impact parameter" << endl;
 
-        // Conversion rejection
-        // pre-72X method below is commented out
-        //  expectedMissingInnerHits_.push_back( el.gsfTrack()->trackerExpectedHitsInner().numberOfLostHits() );
-        // since 72X, the access of missing hits is this:
-        expectedMissingInnerHits_.push_back(el.gsfTrack()->hitPattern()
-        			 .numberOfHits(reco::HitPattern::MISSING_INNER_HITS) );
-        passConversionVeto_.push_back( el.passConversionVeto() );
-        cout << ">>>>   After Conversion rejection" << endl;
+        // // Conversion rejection
+        // // pre-72X method below is commented out
+        // //  expectedMissingInnerHits_.push_back( el.gsfTrack()->trackerExpectedHitsInner().numberOfLostHits() );
+        // // since 72X, the access of missing hits is this:
+        // expectedMissingInnerHits_.push_back(el.gsfTrack()->hitPattern()
+        // 			 .numberOfHits(reco::HitPattern::MISSING_INNER_HITS) );
+        // passConversionVeto_.push_back( el.passConversionVeto() );
+        // cout << ">>>>   After Conversion rejection" << endl;
 
         // Match to generator level truth
 
         // 
         // Explicit loop over gen candidates method
         //
-        isTrueElectron_.push_back( matchToTruth( el, prunedGenParticles) );
-        cout << ">>>>   After matchToTruth" << endl;  
-        isTrueElectronAlternative_.push_back( matchToTruthAlternative( el ) );
-        cout << ">>>>   After matchToTruthAlternative" << endl;  
+        // isTrueElectron_.push_back( matchToTruth( el, prunedGenParticles) );
+        // cout << ">>>>   After matchToTruth" << endl;  
+        // isTrueElectronAlternative_.push_back( matchToTruthAlternative( el ) );
+        // cout << ">>>>   After matchToTruthAlternative" << endl;  
 
-        // Use this for debugging if needed, prints decay history.
-        // Works with standard matching:
-        printAllZeroMothers( el.genParticle() );
+        // // Use this for debugging if needed, prints decay history.
+        // // Works with standard matching:
+        // printAllZeroMothers( el.genParticle() );
 
         }
 
-        cout << ">>>>   End of iteration; filling tree" << endl;
-
-        // Save this electron's info
-        electronTree_->Fill();
-        }
+    // Save this electron's info
+    electronTree_->Fill();
+    }
 
 
 // =====================================
@@ -427,13 +714,13 @@ bool SimpleNtuplizer::checkAncestor(const reco::Candidate *gen, int ancestorPid)
 
     // General sanity check
     if( gen == 0 ){
-    printf("SimpleNtuplizer::checkAncestor: ERROR null particle is passed in, ignore it.\n");
-    return false;
-    }
+        printf("SimpleNtuplizer::checkAncestor: ERROR null particle is passed in, ignore it.\n");
+        return false;
+        }
 
     // If this is true, we found our target ancestor
     if( abs( gen->pdgId() ) == ancestorPid )
-    return true;
+        return true;
 
     // Go deeper and check all mothers
     for(size_t i=0;i< gen->numberOfMothers();i++) {
@@ -644,3 +931,4 @@ void SimpleNtuplizer::endJob() {
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(SimpleNtuplizer);
+
