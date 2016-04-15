@@ -5,7 +5,7 @@ process = cms.Process("EenTest")
 process.load("FWCore.MessageService.MessageLogger_cfi")
 
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(3) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 readFiles = cms.untracked.vstring()
 secFiles = cms.untracked.vstring() 
