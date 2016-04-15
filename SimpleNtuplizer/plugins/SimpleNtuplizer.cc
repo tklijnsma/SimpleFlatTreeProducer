@@ -558,6 +558,8 @@ void SimpleNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 
             i_cluster++;
             // Misschien een break als i_cluster > cut-1 ? (vorige cut was 3)
+
+            //if i_cluster == 3
             }
 
         // Write cluster variables to class member vectors
@@ -583,33 +585,33 @@ void SimpleNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 
         // THIS IS BROKEN
 
-        // // Open up temporary variables
-        // int iPhi, iEta; float cryPhi, cryEta, dummy;
-        // EcalClusterLocal _ecalLocal;
+        // Open up temporary variables
+        int iPhi, iEta; float cryPhi, cryEta, dummy;
+        EcalClusterLocal _ecalLocal;
 
 
-        // if( el.isEB() ){
+        if( el.isEB() ){
 
-        //     _ecalLocal.localCoordsEB( *superCluster->seed(), iSetup,
-        //                               cryEta, cryPhi, iEta, iPhi, dummy, dummy );
+            _ecalLocal.localCoordsEB( *superCluster->seed(), iSetup,
+                                      cryEta, cryPhi, iEta, iPhi, dummy, dummy );
             
-        //     iEtaCoordinate_   .push_back( iEta );
-        //     iPhiCoordinate_   .push_back( iPhi );
-        //     cryEtaCoordinate_ .push_back( cryEta );
-        //     cryPhiCoordinate_ .push_back( cryPhi );
+            iEtaCoordinate_   .push_back( iEta );
+            iPhiCoordinate_   .push_back( iPhi );
+            cryEtaCoordinate_ .push_back( cryEta );
+            cryPhiCoordinate_ .push_back( cryPhi );
 
-        //     }
-        // else {
+            }
+        else {
 
-        //     // Does this not include also barrel-barrel events?
-        //     // Seems strange to do 'localCoordsEE' when the event may be BB
+            // Does this not include also barrel-barrel events?
+            // Seems strange to do 'localCoordsEE' when the event may be BB
 
-        //     _ecalLocal.localCoordsEE( *superCluster->seed(), iSetup,
-        //                               cryEta, cryPhi, iEta, iPhi, dummy, dummy );
+            _ecalLocal.localCoordsEE( *superCluster->seed(), iSetup,
+                                      cryEta, cryPhi, iEta, iPhi, dummy, dummy );
 
-        //     // This part does not really make sense. See example code below.
+            // This part does not really make sense. See example code below.
 
-        //     }
+            }
 
 
         // =======================================================================================
