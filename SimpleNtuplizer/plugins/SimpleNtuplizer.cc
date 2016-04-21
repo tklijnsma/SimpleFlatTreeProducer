@@ -50,13 +50,39 @@
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 
 // Added by Thomas
-#include "RecoEgamma/EgammaTools/interface/EcalClusterLocal.h"
+//#include "RecoEgamma/EgammaTools/interface/EcalClusterLocal.h"
 
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 #include "TTree.h"
 #include "Math/VectorUtil.h"
+
+
+
+// #include "CommonTools/CandAlgos/interface/ModifyObjectValueBase.h"
+// #include "FWCore/Utilities/interface/InputTag.h"
+// #include "FWCore/Utilities/interface/EDGetToken.h"
+// #include "DataFormats/Common/interface/ValueMap.h"
+// #include "FWCore/Framework/interface/ESHandle.h"
+
+// #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
+// #include "DataFormats/EgammaCandidates/interface/Photon.h"
+
+// #include "CondFormats/DataRecord/interface/GBRDWrapperRcd.h"
+// #include "CondFormats/EgammaObjects/interface/GBRForestD.h"
+// #include "CondFormats/DataRecord/interface/GBRWrapperRcd.h"
+// #include "CondFormats/EgammaObjects/interface/GBRForest.h"
+
+// #include "DataFormats/EcalDetId/interface/EBDetId.h"
+// #include "DataFormats/EcalDetId/interface/EEDetId.h"
+// #include "RecoEgamma/EgammaTools/interface/EcalClusterLocal.h"
+
+#include "DataFormats/DetId/interface/DetId.h"
+#include "DataFormats/EcalDetId/interface/EBDetId.h"
+#include "DataFormats/EcalDetId/interface/EEDetId.h"
+
+#include "RecoEgamma/EgammaTools/interface/EcalClusterLocal.h"
 
 
 //######################################
@@ -587,12 +613,19 @@ void SimpleNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 
         // Open up temporary variables
         int iPhi, iEta; float cryPhi, cryEta, dummy;
-        EcalClusterLocal _ecalLocal;
+        
+        cout << endl;
 
+        cout << "Defining: EcalClusterLocal ecalLocal" << endl;
+        EcalClusterLocal ecalLocal;
 
+        cout << "Trying to evaluate el.isEB()" << endl;
         if( el.isEB() ){
 
-            _ecalLocal.localCoordsEB( *superCluster->seed(), iSetup,
+            cout << "    Evaluated el.isEB() = " << el.isEB() << endl;
+            cout << "    Trying localCoordsEB( ... ) now " << endl;
+
+            ecalLocal.localCoordsEB( *superCluster->seed(), iSetup,
                                       cryEta, cryPhi, iEta, iPhi, dummy, dummy );
             
             iEtaCoordinate_   .push_back( iEta );
@@ -606,12 +639,71 @@ void SimpleNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
             // Does this not include also barrel-barrel events?
             // Seems strange to do 'localCoordsEE' when the event may be BB
 
-            _ecalLocal.localCoordsEE( *superCluster->seed(), iSetup,
+            ecalLocal.localCoordsEE( *superCluster->seed(), iSetup,
                                       cryEta, cryPhi, iEta, iPhi, dummy, dummy );
 
             // This part does not really make sense. See example code below.
 
             }
+
+
+
+        // From the other treemaker example
+
+        // EcalClusterLocal ecalLocal;
+
+        // if(theseed->hitsAndFractions().at(0).first.subdetId()==EcalBarrel)
+        // {
+        //     float cryPhi, cryEta, thetatilt, phitilt;
+        //     int ieta, iphi;
+        //     ecalLocal.localCoordsEB(*(theseed), es, cryEta, cryPhi, ieta, iphi, thetatilt, phitilt);
+        //     _scSeedCryEta  = cryEta;
+        //     _scSeedCryPhi  = cryPhi;
+        //     _scSeedCryIeta = ieta;
+        //     _scSeedCryIphi = iphi;
+        //     _scSeedCryX  = 0;
+        //     _scSeedCryY  = 0;
+        //     _scSeedCryIx = 0;
+        //     _scSeedCryIy = 0;
+        // }
+        // else
+        // {
+        //     float cryX, cryY, thetatilt, phitilt;
+        //     int ix, iy;
+        //     ecalLocal.localCoordsEE(*(theseed), es, cryX, cryY, ix, iy, thetatilt, phitilt);
+        //     _scSeedCryX  = cryX;
+        //     _scSeedCryY  = cryY;
+        //     _scSeedCryIx = ix;
+        //     _scSeedCryIy = iy;
+        //     _scSeedCryEta  = 0;
+        //     _scSeedCryPhi  = 0;
+        //     _scSeedCryIeta = 0;
+        //     _scSeedCryIphi = 0;
+        // }
+
+
+
+        // // calculate coordinate variables
+        // const bool iseb = ele.isEB();  
+        // float dummy;
+        // int iPhi;
+        // int iEta;
+        // float cryPhi;
+        // float cryEta;
+        // EcalClusterLocal _ecalLocal;
+        // if (ele.isEB()) 
+        // _ecalLocal.localCoordsEB(*theseed, *iSetup_, cryEta, cryPhi, iEta, iPhi, dummy, dummy);
+        // else 
+        // _ecalLocal.localCoordsEE(*theseed, *iSetup_, cryEta, cryPhi, iEta, iPhi, dummy, dummy);
+
+        // if (iseb) {
+        // eval[29] = cryEta;
+        // eval[30] = cryPhi;
+        // eval[31] = iEta;
+        // eval[32] = iPhi;
+        // } else {
+        // eval[29] = the_sc->preshowerEnergy()/the_sc->rawEnergy();
+        // }
 
 
         // =======================================================================================
