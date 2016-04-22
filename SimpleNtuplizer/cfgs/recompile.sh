@@ -1,3 +1,3 @@
-cd /afs/cern.ch/work/t/tklijnsm/EGM/CMSSW_7_6_3_patch2/src/SimpleFlatTreeProducer
+cd /afs/cern.ch/work/t/tklijnsm/EGM/CMSSW_8_0_4/src/SimpleFlatTreeProducer
 scram b -j 9
-cd /afs/cern.ch/work/t/tklijnsm/EGM/CMSSW_7_6_3_patch2/src/SimpleFlatTreeProducer/SimpleNtuplizer/cfgs
+cd /afs/cern.ch/work/t/tklijnsm/EGM/CMSSW_8_0_4/src/SimpleFlatTreeProducer/SimpleNtuplizer/cfgs
