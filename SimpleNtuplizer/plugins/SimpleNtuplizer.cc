@@ -25,10 +25,11 @@
 #include <vector>
 
 // To check types - only use if needed
-//#include <typeinfo>
+#include <typeinfo>
 
 // user include files
-#include "FWCore/Framework/interface/Frameworkfwd.h"
+//#include "FWCore/Framework/interface/Frameworkfwd.h"
+
 #include "FWCore/Framework/interface/EDAnalyzer.h"
 
 #include "FWCore/Framework/interface/Event.h"
@@ -279,7 +280,8 @@ void SimpleNtuplizer::analyze(
     int numberOfClusters;   // Number of (sub)clusters in the super cluster
 
     // Loop over electrons
-    for (const pat::Electron &el : *electrons) {
+    //for (const pat::Electron &el : *electrons) {
+    for (const reco::GsfElectron &el : *electrons) {
 
         // Increase count of electrons in event
         nElectrons_++;
@@ -405,10 +407,30 @@ void SimpleNtuplizer::analyze(
 
             preshowerEnergy_  .push_back( superCluster->preshowerEnergy() / superCluster->rawEnergy() );
             }
+
+
+        //######################################
+        //# Analyze EP
+        //######################################
+
+        // eval_ep[0] = tot_energy;
+        // eval_ep[2] = ep; 
+        // eval_ep[3] = trkMomentumRelError;
+        // eval_ep[7] = ele.ecalDriven();
+        // eval_ep[8] = ele.trackerDrivenSeed();
+        // eval_ep[9] = int(ele.classification());//eleClass;
+        // eval_ep[10] = iseb;
+
+        // const float tot_energy = superCluster->rawEnergy() + superCluster->preshowerEnergy();
+        // totalEnergyMean_ .push_back( (the_sc->rawEnergy()+the_sc->preshowerEnergy()) * mean )
+
+        //const float ep = ele.trackMomentumAtVtx().R()
+
         }
 
     // Save this electron's info
     electronTree_->Fill();
+
     }
 
 
