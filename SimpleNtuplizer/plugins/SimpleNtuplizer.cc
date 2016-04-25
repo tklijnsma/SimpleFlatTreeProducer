@@ -84,8 +84,6 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
         virtual void endJob() override;
 
-        void ClearBranchVariables();
-
         // =====================================
         // Setting tokens
         
@@ -102,40 +100,54 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
 
 
         // =====================================
-        // Class variables
+        // Event variables
+
+        TTree *eventTree_;
+
+        Int_t nPV_;         // Number of reconsrtucted primary vertices
+        Int_t nElectrons_;
+
+
+        // =====================================
+        // Electron tree variables
 
         TTree *electronTree_;
 
-        // Vars for PVs
-        //Int_t pvNTracks_;
-
-        // Number of reconsrtucted primary vertices
-        Int_t nPV_;
-
-        // electron variables
-        Int_t nElectrons_;
-
-        // Probably still needed in case of pt cuts
-        std::vector<Float_t> pt_;
-
         // Basic electron variables
-        std::vector<Float_t> rawEnergySC_;
-        std::vector<Float_t> etaSC_;
-        std::vector<Float_t> phiSC_;
-        std::vector<Float_t> etaWidthSC_;
-        std::vector<Float_t> phiWidthSC_;
-        std::vector<Float_t> r9SS_;
-        std::vector<Float_t> seedEnergySS_;
-        std::vector<Float_t> eMaxSS_;
-        std::vector<Float_t> e2ndSS_;
-        std::vector<Float_t> eHorizontalSS_;
-        std::vector<Float_t> eVerticalSS_;
-        std::vector<Float_t> sigmaIetaIetaSS_;
-        std::vector<Float_t> sigmaIetaIphiSS_;
-        std::vector<Float_t> sigmaIphiIphiSS_;
-        std::vector<Int_t> numberOfClustersSC_;
+        Float_t pt_;
+        Float_t rawEnergySC_;
+        Float_t etaSC_;
+        Float_t phiSC_;
+        Float_t etaWidthSC_;
+        Float_t phiWidthSC_;
+        Float_t r9SS_;
+        Float_t seedEnergySS_;
+        Float_t eMaxSS_;
+        Float_t e2ndSS_;
+        Float_t eHorizontalSS_;
+        Float_t eVerticalSS_;
+        Float_t sigmaIetaIetaSS_;
+        Float_t sigmaIetaIphiSS_;
+        Float_t sigmaIphiIphiSS_;
+        Int_t numberOfClustersSC_;
+        Int_t isEB_;
+        Float_t preshowerEnergy_;
+
+        // Currently either 0 or 1 entry, depending on whether event is EB or EE
+        std::vector<Float_t> iEtaCoordinate_;
+        std::vector<Float_t> iPhiCoordinate_;
+        std::vector<Float_t> cryEtaCoordinate_;
+        std::vector<Float_t> cryPhiCoordinate_;
+
+        std::vector<Float_t> iXCoordinate_;
+        std::vector<Float_t> iYCoordinate_;
+        std::vector<Float_t> cryXCoordinate_;
+        std::vector<Float_t> cryYCoordinate_;
+
 
         // Cluster variables
+
+        // These contain either 0 or 1 entries
         std::vector<Float_t> MaxDRclusterDR_;
         std::vector<Float_t> MaxDRclusterDPhi_;
         std::vector<Float_t> MaxDRclusterDEta_;
@@ -145,12 +157,20 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         std::vector<Float_t> clusterDPhiToSeed_;
         std::vector<Float_t> clusterDEtaToSeed_;
 
-        std::vector<Float_t> iEtaCoordinate_;
-        std::vector<Float_t> iPhiCoordinate_;
-        std::vector<Float_t> cryEtaCoordinate_;
-        std::vector<Float_t> cryPhiCoordinate_;
 
-        std::vector<Float_t> preshowerEnergy_;
+        // =====================================
+        // E-p tree variables
+
+        TTree *EpTree_;
+
+        Float_t totEnergyEp_;
+        Float_t epEp_;
+        Float_t epRelErrorEp_;
+        Float_t ecalDrivenEp_;
+        Float_t trackerDrivenSeedEp_;
+        Int_t classificationEp_;
+        Int_t isEBEp_;
+
     };
 
 
@@ -177,15 +197,27 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
 
     edm::Service<TFileService> fs;
 
-    // Making tree and setting branches
+
+    // =====================================
+    // Making event variable tree and setting branches
+    // Event variables include the quantities of which there are exactly one per event
+
+    eventTree_ = fs->make<TTree> ("EventTree", "Per event data");
+
+    // Event variables
+    eventTree_->Branch( "nPV",          &nPV_        , "nPV/I");
+    eventTree_->Branch( "nElelectrons", &nElectrons_ , "nEle/I");
+
+
+    // =====================================
+    // Making electron tree and setting branches
+
     electronTree_ = fs->make<TTree> ("ElectronTree", "Electron data");
 
-    electronTree_->Branch( "pt",   &pt_    );
-    electronTree_->Branch( "nPV",  &nPV_        , "nPV/I");
-    electronTree_->Branch( "nEle", &nElectrons_ , "nEle/I");
-
-    electronTree_->Branch( "etaSC",               &etaSC_ );
-    electronTree_->Branch( "phiSC",               &phiSC_ );
+    // Electron variables
+    electronTree_->Branch( "pt_",                 &pt_    );
+    electronTree_->Branch( "etaSC_",              &etaSC_ );
+    electronTree_->Branch( "phiSC_",              &phiSC_ );
     electronTree_->Branch( "rawEnergySC_",        &rawEnergySC_ );
     electronTree_->Branch( "etaWidthSC_",         &etaWidthSC_ );
     electronTree_->Branch( "phiWidthSC_",         &phiWidthSC_ );
@@ -198,7 +230,21 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     electronTree_->Branch( "sigmaIetaIetaSS_",    &sigmaIetaIetaSS_ );
     electronTree_->Branch( "sigmaIetaIphiSS_",    &sigmaIetaIphiSS_ );
     electronTree_->Branch( "sigmaIphiIphiSS_",    &sigmaIphiIphiSS_ );
+    electronTree_->Branch( "preshowerEnergy_",    &preshowerEnergy_ );
     electronTree_->Branch( "numberOfClustersSC_", &numberOfClustersSC_ );
+    electronTree_->Branch( "isEB_",               &isEB_ );
+
+    // These for EB electrons
+    electronTree_->Branch( "iEtaCoordinate_",     &iEtaCoordinate_ );         
+    electronTree_->Branch( "iPhiCoordinate_",     &iPhiCoordinate_ );         
+    electronTree_->Branch( "cryEtaCoordinate_",   &cryEtaCoordinate_ );
+    electronTree_->Branch( "cryPhiCoordinate_",   &cryPhiCoordinate_ );
+
+    // These for EE electrons
+    electronTree_->Branch( "iXCoordinate_",       &iXCoordinate_ );         
+    electronTree_->Branch( "iYCoordinate_",       &iYCoordinate_ );         
+    electronTree_->Branch( "cryXCoordinate_",     &cryXCoordinate_ );
+    electronTree_->Branch( "cryYCoordinate_",     &cryYCoordinate_ );
 
     // Cluster variables
     electronTree_->Branch( "MaxDRclusterDR_",        &MaxDRclusterDR_ );
@@ -208,14 +254,21 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
 
     electronTree_->Branch( "clusterRawEnergy_",      &clusterRawEnergy_ );        
     electronTree_->Branch( "clusterDPhiToSeed_",     &clusterDPhiToSeed_ );         
-    electronTree_->Branch( "clusterDEtaToSeed_",     &clusterDEtaToSeed_ );         
+    electronTree_->Branch( "clusterDEtaToSeed_",     &clusterDEtaToSeed_ );
 
-    electronTree_->Branch( "iEtaCoordinate_",   &iEtaCoordinate_ );         
-    electronTree_->Branch( "iPhiCoordinate_",   &iPhiCoordinate_ );         
-    electronTree_->Branch( "cryEtaCoordinate_", &cryEtaCoordinate_ );           
-    electronTree_->Branch( "cryPhiCoordinate_", &cryPhiCoordinate_ );
 
-    electronTree_->Branch( "preshowerEnergy_",  &preshowerEnergy_ );
+    // =====================================
+    // Making E-p tree and setting branches
+
+    EpTree_ = fs->make<TTree> ("EpTree", "E-p data");
+
+    EpTree_->Branch( "totEnergyEp_",         &totEnergyEp_ );
+    EpTree_->Branch( "epEp_",                &epEp_ );
+    EpTree_->Branch( "epRelErrorEp_",        &epRelErrorEp_ );
+    EpTree_->Branch( "ecalDrivenEp_",        &ecalDrivenEp_ );
+    EpTree_->Branch( "trackerDrivenSeedEp_", &trackerDrivenSeedEp_ );
+    EpTree_->Branch( "classificationEp_",    &classificationEp_ );
+    EpTree_->Branch( "isEBEp_",              &isEBEp_ );
 
     }
 
@@ -273,13 +326,14 @@ void SimpleNtuplizer::analyze(
     iEvent.getByToken(electronToken_, electrons);
 
     // Clear variables from previous event
-    ClearBranchVariables();
+    //ClearVectorBranchVariables();
 
     // Temporary definitions
     double rawEnergy;       // Raw energy of the super cluster per electron
     int numberOfClusters;   // Number of (sub)clusters in the super cluster
 
     // Loop over electrons
+    nElectrons_ = 0;
     //for (const pat::Electron &el : *electrons) {
     for (const reco::GsfElectron &el : *electrons) {
 
@@ -291,50 +345,54 @@ void SimpleNtuplizer::analyze(
 
         // Raw energy of the super cluster per electron
         rawEnergy = superCluster->rawEnergy();
-        rawEnergySC_     .push_back( rawEnergy );
 
-        pt_              .push_back( el.pt() );
-        etaSC_           .push_back( superCluster->eta() );
-        phiSC_           .push_back( superCluster->phi() );
-        etaWidthSC_      .push_back( superCluster->etaWidth() );
-        phiWidthSC_      .push_back( superCluster->phiWidth() );
-
-        r9SS_            .push_back( el.showerShape().r9 );
-
-        seedEnergySS_    .push_back( superCluster->seed()->energy() / rawEnergy );
-
-        eMaxSS_          .push_back( el.showerShape().eMax / rawEnergy );
-        e2ndSS_          .push_back( el.showerShape().e2nd / rawEnergy );
-
-        eHorizontalSS_   .push_back(
-            el.showerShape().eLeft + el.showerShape().eRight != 0.f  
-            ? ( el.showerShape().eLeft - el.showerShape().eRight ) /
-                ( el.showerShape().eLeft + el.showerShape().eRight ) : 0.f  );
-
-        eVerticalSS_     .push_back(
-            el.showerShape().eTop + el.showerShape().eBottom != 0.f  
-            ? ( el.showerShape().eTop - el.showerShape().eBottom ) /
-                ( el.showerShape().eTop + el.showerShape().eBottom ) : 0.f  );
-
-        sigmaIetaIetaSS_ .push_back( el.showerShape().sigmaIetaIeta );
-        sigmaIetaIphiSS_ .push_back( el.showerShape().sigmaIetaIphi );
-        sigmaIphiIphiSS_ .push_back( el.showerShape().sigmaIphiIphi );
+        // Write electron variables to class variables
+        pt_              = el.pt() ;
+        rawEnergySC_     = rawEnergy ;
+        etaSC_           = superCluster->eta() ;
+        phiSC_           = superCluster->phi() ;
+        etaWidthSC_      = superCluster->etaWidth() ;
+        phiWidthSC_      = superCluster->phiWidth() ;
+        r9SS_            = el.showerShape().r9 ;
+        seedEnergySS_    = superCluster->seed()->energy() / rawEnergy ;
+        eMaxSS_          = el.showerShape().eMax / rawEnergy ;
+        e2ndSS_          = el.showerShape().e2nd / rawEnergy ;
+        eHorizontalSS_   = el.showerShape().eLeft + el.showerShape().eRight != 0.f  
+                                     ? ( el.showerShape().eLeft - el.showerShape().eRight ) /
+                                       ( el.showerShape().eLeft + el.showerShape().eRight ) : 0.f  ;
+        eVerticalSS_     = el.showerShape().eTop + el.showerShape().eBottom != 0.f
+                                     ? ( el.showerShape().eTop - el.showerShape().eBottom ) /
+                                       ( el.showerShape().eTop + el.showerShape().eBottom ) : 0.f  ;
+        sigmaIetaIetaSS_ = el.showerShape().sigmaIetaIeta ;
+        sigmaIetaIphiSS_ = el.showerShape().sigmaIetaIphi ;
+        sigmaIphiIphiSS_ = el.showerShape().sigmaIphiIphi ;
+        preshowerEnergy_ = superCluster->preshowerEnergy() / superCluster->rawEnergy() ;        
 
         numberOfClusters = std::max( 0, int (superCluster->clusters().size()) );
-        numberOfClustersSC_ .push_back( numberOfClusters );
+        numberOfClustersSC_ = numberOfClusters ;
+        isEB_               = el.isEB() ;
 
 
         // =====================================
         // Cluster variables (subs of the superCluster)
+
+        // Clear the std::vectors from the previous electron
+        clusterRawEnergy_.clear();
+        clusterDPhiToSeed_.clear();
+        clusterDEtaToSeed_.clear();
+
+        // These have either 0 or 1 entry
+        MaxDRclusterDR_.clear();
+        MaxDRclusterDPhi_.clear();
+        MaxDRclusterDEta_.clear();
+        MaxDRclusterRawEnergy_.clear();
 
         // Default values
         float MaxDRclusterDR        = 999.;
         float MaxDRclusterDPhi      = 999.;
         float MaxDRclusterDEta      = 999.;
         float MaxDRclusterRawEnergy = 0.;
-
-        // Current maximum deltaR; initially 0.0
-        float maxDR = 0;
+        float maxDR                 = 0.;
 
         // Define cluster
         edm::Ptr<reco::CaloCluster> cluster;
@@ -370,7 +428,7 @@ void SimpleNtuplizer::analyze(
             if(i_cluster == 3) continue;
             }
 
-        // Write cluster variables to class member vectors
+        // Write cluster variables to class member vectors, only if needed
         if( i_cluster > 0 ) {
             // Still use vectors, since these vars may be empty
             MaxDRclusterDR_        .push_back( MaxDRclusterDR );    
@@ -384,52 +442,62 @@ void SimpleNtuplizer::analyze(
         // Coordinate variables
         // Does different things for when the electron is in the barrel or endcap
 
-        // Currently, this code writes coordinates if the event is EB, and
-        // preshower energy if the event is EE, which is in line with the example code,
-        // but seems silly.
-
         // Open up temporary variables
-        int iPhi, iEta; float cryPhi, cryEta, dummy;
+        int iPhi, iEta, iX, iY; float cryPhi, cryEta, cryX, cryY, dummy;
         EcalClusterLocal ecalLocal;
+
+        // Clear up values from previous electron
+        iEtaCoordinate_.clear();
+        iPhiCoordinate_.clear();
+        cryEtaCoordinate_.clear();
+        cryPhiCoordinate_.clear();
+
+        iXCoordinate_.clear();
+        iYCoordinate_.clear();
+        cryXCoordinate_.clear();
+        cryYCoordinate_.clear();
 
         if( el.isEB() ){
             ecalLocal.localCoordsEB( *superCluster->seed(), iSetup,
                                       cryEta, cryPhi, iEta, iPhi, dummy, dummy );
-            
             iEtaCoordinate_   .push_back( iEta );
             iPhiCoordinate_   .push_back( iPhi );
             cryEtaCoordinate_ .push_back( cryEta );
             cryPhiCoordinate_ .push_back( cryPhi );
             }
+
         else{
             ecalLocal.localCoordsEE( *superCluster->seed(), iSetup,
-                                      cryEta, cryPhi, iEta, iPhi, dummy, dummy );
-
-            preshowerEnergy_  .push_back( superCluster->preshowerEnergy() / superCluster->rawEnergy() );
+                                      cryX, cryY, iX, iY, dummy, dummy );
+            iXCoordinate_     .push_back( iX );
+            iYCoordinate_     .push_back( iY );
+            cryXCoordinate_   .push_back( cryX );
+            cryYCoordinate_   .push_back( cryY );
             }
+
+        // Save this electron's info
+        electronTree_->Fill();
 
 
         //######################################
         //# Analyze EP
         //######################################
 
-        // eval_ep[0] = tot_energy;
-        // eval_ep[2] = ep; 
-        // eval_ep[3] = trkMomentumRelError;
-        // eval_ep[7] = ele.ecalDriven();
-        // eval_ep[8] = ele.trackerDrivenSeed();
-        // eval_ep[9] = int(ele.classification());//eleClass;
-        // eval_ep[10] = iseb;
+        totEnergyEp_         = superCluster->rawEnergy() + superCluster->preshowerEnergy();
+        epEp_                = el.trackMomentumAtVtx().R();
+        epRelErrorEp_        = el.trackMomentumError() / el.trackMomentumAtVtx().R();
+        ecalDrivenEp_        = el.ecalDriven();
+        trackerDrivenSeedEp_ = el.trackerDrivenSeed();
+        classificationEp_    = int(el.classification());
+        isEBEp_              = el.isEB();
 
-        // const float tot_energy = superCluster->rawEnergy() + superCluster->preshowerEnergy();
-        // totalEnergyMean_ .push_back( (the_sc->rawEnergy()+the_sc->preshowerEnergy()) * mean )
-
-        //const float ep = ele.trackMomentumAtVtx().R()
+        // Save this electron's info
+        EpTree_->Fill();
 
         }
 
-    // Save this electron's info
-    electronTree_->Fill();
+    // Fill in the event specific variables
+    eventTree_->Fill();
 
     }
 
@@ -437,46 +505,6 @@ void SimpleNtuplizer::analyze(
 //######################################
 //# Class methods
 //######################################
-
-void SimpleNtuplizer::ClearBranchVariables(){
-
-    nElectrons_ = 0;
-    pt_.clear();
-    etaSC_.clear();
-    phiSC_.clear();
-    
-    rawEnergySC_.clear();
-    etaWidthSC_.clear();
-    phiWidthSC_.clear();
-    r9SS_.clear();
-    seedEnergySS_.clear();
-    eMaxSS_.clear();
-    e2ndSS_.clear();
-    eHorizontalSS_.clear();
-    eVerticalSS_.clear();
-    sigmaIetaIetaSS_.clear();
-    sigmaIetaIphiSS_.clear();
-    sigmaIphiIphiSS_.clear();
-    numberOfClustersSC_.clear();
-
-    // Cluster variables
-    MaxDRclusterDR_.clear();
-    MaxDRclusterDPhi_.clear();
-    MaxDRclusterDEta_.clear();
-    MaxDRclusterRawEnergy_.clear();
-
-    clusterRawEnergy_.clear();
-    clusterDPhiToSeed_.clear();
-    clusterDEtaToSeed_.clear();
-
-    iEtaCoordinate_.clear();
-    iPhiCoordinate_.clear();
-    cryEtaCoordinate_.clear();
-    cryPhiCoordinate_.clear();
-
-    preshowerEnergy_.clear();
-
-    }
 
 
 //######################################
