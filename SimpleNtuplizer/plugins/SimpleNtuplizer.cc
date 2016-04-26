@@ -75,6 +75,7 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         ~SimpleNtuplizer();
 
         void setElectronVariables( const reco::GsfElectron&, const edm::Event&, const edm::EventSetup& );
+        void setPhotonVariables(   const reco::Photon&,      const edm::Event&, const edm::EventSetup& );
 
         enum ElectronMatchType{
             UNMATCHED = 0, 
@@ -177,6 +178,52 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         Int_t classificationEp_;
         Int_t isEBEp_;
 
+
+        // =====================================
+        // Photon tree variables
+
+        TTree *photonTree_;
+
+        Float_t ph_rawEnergy_           ;
+        Float_t ph_r9_                  ;
+        Float_t ph_etaWidth_            ;
+        Float_t ph_phiWidth_            ;
+        Int_t   ph_numberOfClusters_    ;
+        Float_t ph_hadronicOverEm_      ;
+        Float_t ph_rhoValue_            ;
+        Float_t ph_delEtaSeed_          ;
+        Float_t ph_delPhiSeed_          ;
+        Float_t ph_seedEnergy_          ;
+        Float_t ph_3x3_5x5_             ;
+        Float_t ph_sigmaIetaIeta_       ;
+        Float_t ph_sigmaIphiIphi_       ;
+        Float_t ph_sigmaIetaIphi_       ;
+        Float_t ph_Emax_5x5_            ;
+        Float_t ph_e2nd_5x5_            ;
+        Float_t ph_eTop_5x5_            ;
+        Float_t ph_eBottom_5x5_         ;
+        Float_t ph_eLeft_5x5_           ;
+        Float_t ph_eRight_5x5_          ;
+        Float_t ph_e2x5Max_5x5_         ;
+        Float_t ph_e2x5Left_5x5_        ;
+        Float_t ph_e2x5Right_5x5_       ;
+        Float_t ph_e2x5Top_5x5_         ;
+        Float_t ph_e2x5Bottom_5x5_      ;
+
+        Int_t ph_isEB_;
+        std::vector<Float_t> ph_5x5_seedEnergy_         ;
+        std::vector<Int_t>   ph_iEtaCoordinate_         ;
+        std::vector<Int_t>   ph_iPhiCoordinate_         ;
+        std::vector<Int_t>   ph_iEtaMod5_               ;
+        std::vector<Int_t>   ph_iPhiMod2_               ;
+        std::vector<Int_t>   ph_iEtaMod20_              ;
+        std::vector<Int_t>   ph_iPhiMod20_              ;
+        std::vector<Float_t> ph_preShowerE_rawEnergy_   ;
+        std::vector<Float_t> ph_preShowerEp1_rawEnergy_ ;
+        std::vector<Float_t> ph_preShowerEp2_rawEnergy_ ;
+        std::vector<Int_t>   ph_iXCoordinate_           ;
+        std::vector<Int_t>   ph_iYCoordinate_           ;
+
     };
 
 
@@ -213,8 +260,9 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     eventTree_ = fs->make<TTree> ("EventTree", "Per event data");
 
     // Event variables
-    eventTree_->Branch( "nPV",          &nPV_        , "nPV/I");
-    eventTree_->Branch( "nElelectrons", &nElectrons_ , "nEle/I");
+    eventTree_->Branch( "nPV",        &nPV_,        "nPV/I"   );
+    eventTree_->Branch( "nElectrons", &nElectrons_, "nEle/I"  );
+    eventTree_->Branch( "nPhotons",   &nPhotons_,   "nPho/I"  );
 
 
     // =====================================
@@ -279,7 +327,51 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     EpTree_->Branch( "isEBEp_",              &isEBEp_ );
 
 
-    //photonTree_ = fs->make<TTree> ("PhotonTree", "Photon data");
+    // =====================================
+    // Making photon tree and setting branches
+
+    photonTree_ = fs->make<TTree> ("PhotonTree", "Photon data");
+
+    photonTree_->Branch( "rawEnergy_",        &ph_rawEnergy_        );
+    photonTree_->Branch( "r9_",               &ph_r9_               );
+    photonTree_->Branch( "etaWidth_",         &ph_etaWidth_         );
+    photonTree_->Branch( "phiWidth_",         &ph_phiWidth_         );
+    photonTree_->Branch( "numberOfClusters_", &ph_numberOfClusters_ );                     
+    photonTree_->Branch( "hadronicOverEm_",   &ph_hadronicOverEm_   );
+    photonTree_->Branch( "rhoValue_",         &ph_rhoValue_         );
+    photonTree_->Branch( "delEtaSeed_",       &ph_delEtaSeed_       );
+    photonTree_->Branch( "delPhiSeed_",       &ph_delPhiSeed_       );
+    photonTree_->Branch( "seedEnergy_",       &ph_seedEnergy_       );
+    photonTree_->Branch( "3x3_5x5_",          &ph_3x3_5x5_          );
+    photonTree_->Branch( "sigmaIetaIeta_",    &ph_sigmaIetaIeta_    );
+    photonTree_->Branch( "sigmaIphiIphi_",    &ph_sigmaIphiIphi_    );
+    photonTree_->Branch( "sigmaIetaIphi_",    &ph_sigmaIetaIphi_    );
+    photonTree_->Branch( "Emax_5x5_",         &ph_Emax_5x5_         );
+    photonTree_->Branch( "e2nd_5x5_",         &ph_e2nd_5x5_         );
+    photonTree_->Branch( "eTop_5x5_",         &ph_eTop_5x5_         );
+    photonTree_->Branch( "eBottom_5x5_",      &ph_eBottom_5x5_      );
+    photonTree_->Branch( "eLeft_5x5_",        &ph_eLeft_5x5_        );
+    photonTree_->Branch( "eRight_5x5_",       &ph_eRight_5x5_       );
+    photonTree_->Branch( "e2x5Max_5x5_",      &ph_e2x5Max_5x5_      );
+    photonTree_->Branch( "e2x5Left_5x5_",     &ph_e2x5Left_5x5_     );
+    photonTree_->Branch( "e2x5Right_5x5_",    &ph_e2x5Right_5x5_    );
+    photonTree_->Branch( "e2x5Top_5x5_",      &ph_e2x5Top_5x5_      );
+    photonTree_->Branch( "e2x5Bottom_5x5_",   &ph_e2x5Bottom_5x5_   );
+
+    // Coordinate variables
+    photonTree_->Branch( "isEB_",                   &ph_isEB_                   );
+    photonTree_->Branch( "5x5_seedEnergy_",         &ph_5x5_seedEnergy_         );
+    photonTree_->Branch( "iEtaCoordinate_",         &ph_iEtaCoordinate_         );
+    photonTree_->Branch( "iPhiCoordinate_",         &ph_iPhiCoordinate_         );
+    photonTree_->Branch( "iEtaMod5_",               &ph_iEtaMod5_               );
+    photonTree_->Branch( "iPhiMod2_",               &ph_iPhiMod2_               );
+    photonTree_->Branch( "iEtaMod20_",              &ph_iEtaMod20_              );
+    photonTree_->Branch( "iPhiMod20_",              &ph_iPhiMod20_              );
+    photonTree_->Branch( "preShowerE_rawEnergy_",   &ph_preShowerE_rawEnergy_   );
+    photonTree_->Branch( "preShowerEp1_rawEnergy_", &ph_preShowerEp1_rawEnergy_ );
+    photonTree_->Branch( "preShowerEp2_rawEnergy_", &ph_preShowerEp2_rawEnergy_ );
+    photonTree_->Branch( "iXCoordinate_",           &ph_iXCoordinate_           );
+    photonTree_->Branch( "iYCoordinate_",           &ph_iYCoordinate_           );
 
 
     }
@@ -329,51 +421,51 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
     //# Analyze electrons
     //######################################
 
-    // Get electron collection
-    //edm::Handle<pat::ElectronCollection> electrons;    // For miniAOD
-    edm::Handle<reco::GsfElectronCollection> electrons;  // For AODSIM
-    iEvent.getByToken(electronToken_, electrons);
+    // // Get electron collection
+    // //edm::Handle<pat::ElectronCollection> electrons;    // For miniAOD
+    // edm::Handle<reco::GsfElectronCollection> electrons;  // For AODSIM
+    // iEvent.getByToken(electronToken_, electrons);
 
-    // Loop over electrons
-    nElectrons_ = 0;
-    //for (const pat::Electron &el : *electrons) {
-    for (const reco::GsfElectron &el : *electrons) {
+    // // Loop over electrons
+    // nElectrons_ = 0;
+    // //for (const pat::Electron &el : *electrons) {
+    // for (const reco::GsfElectron &el : *electrons) {
 
-        // Increase count of electrons in event
-        nElectrons_++;
-
-        // Fill in the class variables for this particle; also sets E-p variables
-        setElectronVariables( el, iEvent, iSetup );
-
-        // Write class variables to the output tree
-        electronTree_->Fill();
-
-        // Write E-p variables to the E-p tree
-        EpTree_->Fill();
-
-        }
-
-    // // Get photon collection
-    // edm::Handle<reco::PhotonCollection> photons;
-    // iEvent.getByToken(photonToken_, photons);
-
-    //  // Loop over photons
-    // nPhotons_ = 0;
-    // for (const reco::Photon &ph : *photons) {
-
-    //     // Increase count of photons in event
-    //     nPhotons_++;
+    //     // Increase count of electrons in event
+    //     nElectrons_++;
 
     //     // Fill in the class variables for this particle; also sets E-p variables
-    //     setParticleVariables< const reco::Photon& >( ph, iEvent, iSetup );
+    //     setElectronVariables( el, iEvent, iSetup );
 
     //     // Write class variables to the output tree
-    //     photonTree_->Fill();
+    //     electronTree_->Fill();
 
     //     // Write E-p variables to the E-p tree
     //     EpTree_->Fill();
 
     //     }
+
+    // Get photon collection
+    edm::Handle<reco::PhotonCollection> photons;
+    iEvent.getByToken(photonToken_, photons);
+
+     // Loop over photons
+    nPhotons_ = 0;
+    for (const reco::Photon &photon : *photons) {
+
+        // Increase count of photons in event
+        nPhotons_++;
+
+        // Fill in the class variables for this particle; also sets E-p variables
+        setPhotonVariables( photon, iEvent, iSetup );
+
+        // Write class variables to the output tree
+        photonTree_->Fill();
+
+        // Write E-p variables to the E-p tree
+        //EpTree_->Fill();
+
+        }
 
 
     // Fill in the event specific variables
@@ -550,84 +642,102 @@ void SimpleNtuplizer::setElectronVariables(
     classificationEp_    = int(electron.classification());
     isEBEp_              = electron.isEB();
 
-
-    // const auto& ess = pho.showerShapeVariables();
-
-    // cout << "Type of ess:" << endl;
-    // cout << typeid(ess).name() << endl;
-
-
-
-
-    // void EGExtraInfoModifierFromDB::modifyObject(reco::Photon& pho) const {
-
-    // std::array<float, 35> eval;
-    // const reco::SuperClusterRef& the_sc = pho.superCluster();
-    // const edm::Ptr<reco::CaloCluster>& theseed = the_sc->seed();
-
-    // const int numberOfClusters =  the_sc->clusters().size();
-    // const bool missing_clusters = !the_sc->clusters()[numberOfClusters-1].isAvailable();
-
-    // if( missing_clusters ) return ; // do not apply corrections in case of missing info (slimmed MiniAOD electrons)
-
-    // const double raw_energy = the_sc->rawEnergy(); 
-    // const auto& ess = pho.showerShapeVariables();
-
-    // // SET INPUTS
-    // --eval[0]  = raw_energy;
-    // --eval[1]  = pho.r9();
-    // --eval[2]  = the_sc->etaWidth();
-    // --eval[3]  = the_sc->phiWidth(); 
-    // --eval[4]  = std::max(0,numberOfClusters - 1);
-    // eval[5]  = pho.hadronicOverEm();
-    // eval[6]  = rhoValue_;
-    // --eval[7]  = nVtx_;  
-    // eval[8] = theseed->eta()-the_sc->position().Eta();
-    // eval[9] = reco::deltaPhi(theseed->phi(),the_sc->position().Phi());
-    // --eval[10] = theseed->energy()/raw_energy;
-    // eval[11] = ess.e3x3/ess.e5x5;
-    // eval[12] = ess.sigmaIetaIeta;  
-    // eval[13] = ess.sigmaIphiIphi;
-    // eval[14] = ess.sigmaIetaIphi/(ess.sigmaIphiIphi*ess.sigmaIetaIeta);
-    // eval[15] = ess.maxEnergyXtal/ess.e5x5;
-    // eval[16] = ess.e2nd/ess.e5x5;
-    // eval[17] = ess.eTop/ess.e5x5;
-    // eval[18] = ess.eBottom/ess.e5x5;
-    // eval[19] = ess.eLeft/ess.e5x5;
-    // eval[20] = ess.eRight/ess.e5x5;  
-    // eval[21] = ess.e2x5Max/ess.e5x5;
-    // eval[22] = ess.e2x5Left/ess.e5x5;
-    // eval[23] = ess.e2x5Right/ess.e5x5;
-    // eval[24] = ess.e2x5Top/ess.e5x5;
-    // eval[25] = ess.e2x5Bottom/ess.e5x5;
-
-    // const bool iseb = pho.isEB();
-    // if (iseb) {
-    // EBDetId ebseedid(theseed->seed());
-    // eval[26] = pho.e5x5()/theseed->energy();
-    // int ieta = ebseedid.ieta();
-    // int iphi = ebseedid.iphi();
-    // eval[27] = ieta;
-    // eval[28] = iphi;
-    // int signieta = ieta > 0 ? +1 : -1; /// this is 1*abs(ieta)/ieta in original training
-    // eval[29] = (ieta-signieta)%5;
-    // eval[30] = (iphi-1)%2;
-    // //    eval[31] = (abs(ieta)<=25)*((ieta-signieta)%25) + (abs(ieta)>25)*((ieta-26*signieta)%20); //%25 is unnescessary in this formula
-    // eval[31] = (abs(ieta)<=25)*((ieta-signieta)) + (abs(ieta)>25)*((ieta-26*signieta)%20);  
-    // eval[32] = (iphi-1)%20;
-    // eval[33] = ieta;  /// duplicated variables but this was trained like that
-    // eval[34] = iphi;  /// duplicated variables but this was trained like that
-    // } else {
-    // EEDetId eeseedid(theseed->seed());
-    // eval[26] = the_sc->preshowerEnergy()/raw_energy;
-    // eval[27] = the_sc->preshowerEnergyPlane1()/raw_energy;
-    // eval[28] = the_sc->preshowerEnergyPlane2()/raw_energy;
-    // eval[29] = eeseedid.ix();
-    // eval[30] = eeseedid.iy();
-    // }    
-
     }
 
+
+// Function that actually reads values from the AODSIM input file
+void SimpleNtuplizer::setPhotonVariables(
+        const reco::Photon& photon,
+        const edm::Event& iEvent,
+        const edm::EventSetup& iSetup ){
+
+    // Set convenience variables
+    const reco::SuperClusterRef& superCluster = photon.superCluster();
+    const edm::Ptr<reco::CaloCluster>& seedCluster = superCluster->seed();
+    const int numberOfClusters =  superCluster->clusters().size();
+
+    // T: Not sure if this should be done!!
+    // const bool missing_clusters = !superCluster->clusters()[numberOfClusters-1].isAvailable();
+    // if( missing_clusters ) return ; // do not apply corrections in case of missing info (slimmed MiniAOD electrons)
+
+    const double rawEnergy = superCluster->rawEnergy(); 
+    const auto& showerShape = photon.showerShapeVariables();
+
+    // Get rho
+    edm::Handle< double > rhoH;
+    iEvent.getByToken(rhoToken_,rhoH);
+    Float_t rho = *rhoH;
+
+    // Fill in variables that will be written to the tree
+    ph_rawEnergy_         = rawEnergy;
+    ph_r9_                = photon.r9();
+    ph_etaWidth_          = superCluster->etaWidth();
+    ph_phiWidth_          = superCluster->phiWidth(); 
+    ph_numberOfClusters_  = std::max(0,numberOfClusters - 1);
+    ph_hadronicOverEm_    = photon.hadronicOverEm();
+    ph_rhoValue_          = rho;
+    ph_delEtaSeed_        = seedCluster->eta()-superCluster->position().Eta();
+    ph_delPhiSeed_        = reco::deltaPhi(seedCluster->phi(),superCluster->position().Phi());
+    ph_seedEnergy_        = seedCluster->energy()/rawEnergy;
+    ph_3x3_5x5_           = showerShape.e3x3 / showerShape.e5x5;
+    ph_sigmaIetaIeta_     = showerShape.sigmaIetaIeta;  
+    ph_sigmaIphiIphi_     = showerShape.sigmaIphiIphi;
+    ph_sigmaIetaIphi_     = showerShape.sigmaIetaIphi / (showerShape.sigmaIphiIphi*showerShape.sigmaIetaIeta);
+    ph_Emax_5x5_          = showerShape.maxEnergyXtal / showerShape.e5x5;
+    ph_e2nd_5x5_          = showerShape.e2nd       / showerShape.e5x5;
+    ph_eTop_5x5_          = showerShape.eTop       / showerShape.e5x5;
+    ph_eBottom_5x5_       = showerShape.eBottom    / showerShape.e5x5;
+    ph_eLeft_5x5_         = showerShape.eLeft      / showerShape.e5x5;
+    ph_eRight_5x5_        = showerShape.eRight     / showerShape.e5x5;  
+    ph_e2x5Max_5x5_       = showerShape.e2x5Max    / showerShape.e5x5;
+    ph_e2x5Left_5x5_      = showerShape.e2x5Left   / showerShape.e5x5;
+    ph_e2x5Right_5x5_     = showerShape.e2x5Right  / showerShape.e5x5;
+    ph_e2x5Top_5x5_       = showerShape.e2x5Top    / showerShape.e5x5;
+    ph_e2x5Bottom_5x5_    = showerShape.e2x5Bottom / showerShape.e5x5;
+
+    // Clear the std::vectors from last photon
+    ph_5x5_seedEnergy_         .clear();
+    ph_iEtaCoordinate_         .clear();
+    ph_iPhiCoordinate_         .clear();
+    ph_iEtaMod5_               .clear();
+    ph_iPhiMod2_               .clear();
+    ph_iEtaMod20_              .clear();
+    ph_iPhiMod20_              .clear();
+    ph_preShowerE_rawEnergy_   .clear();
+    ph_preShowerEp1_rawEnergy_ .clear();
+    ph_preShowerEp2_rawEnergy_ .clear();
+    ph_iXCoordinate_           .clear();
+    ph_iYCoordinate_           .clear();
+
+    // Coordinate variables
+    ph_isEB_ = photon.isEB();
+    if ( photon.isEB() ) {
+        
+        ph_5x5_seedEnergy_ .push_back( photon.e5x5() / seedCluster->energy() ); // Why does photon.e5x5() work here? Up it's ss.e5x5
+
+        EBDetId ebseedid( seedCluster->seed());
+        
+        int ieta = ebseedid.ieta();
+        int iphi = ebseedid.iphi();
+        int signieta = ieta > 0 ? +1 : -1; /// this is 1*abs(ieta)/ieta in original training
+
+        ph_iEtaCoordinate_ .push_back( ieta );
+        ph_iPhiCoordinate_ .push_back( iphi );
+        ph_iEtaMod5_       .push_back( (ieta-signieta)%5 );
+        ph_iPhiMod2_       .push_back( (iphi-1)%2 );
+        ph_iEtaMod20_      .push_back( abs(ieta)<=25 ? ieta-signieta : (ieta - 26*signieta) % 20  );
+        ph_iPhiMod20_      .push_back( (iphi-1)%20 );
+        }
+    
+    else {
+        EEDetId eeseedid( seedCluster->seed());
+        ph_preShowerE_rawEnergy_   .push_back( superCluster->preshowerEnergy() / rawEnergy );
+        ph_preShowerEp1_rawEnergy_ .push_back( superCluster->preshowerEnergyPlane1() / rawEnergy );
+        ph_preShowerEp2_rawEnergy_ .push_back( superCluster->preshowerEnergyPlane2() / rawEnergy );
+        ph_iXCoordinate_           .push_back( eeseedid.ix() );
+        ph_iYCoordinate_           .push_back( eeseedid.iy() );
+        }
+    }
 
 
 //######################################
