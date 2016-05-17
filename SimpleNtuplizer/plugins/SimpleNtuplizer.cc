@@ -421,29 +421,29 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
     //# Analyze electrons
     //######################################
 
-    // // Get electron collection
-    // //edm::Handle<pat::ElectronCollection> electrons;    // For miniAOD
-    // edm::Handle<reco::GsfElectronCollection> electrons;  // For AODSIM
-    // iEvent.getByToken(electronToken_, electrons);
+    // Get electron collection
+    //edm::Handle<pat::ElectronCollection> electrons;    // For miniAOD
+    edm::Handle<reco::GsfElectronCollection> electrons;  // For AODSIM
+    iEvent.getByToken(electronToken_, electrons);
 
-    // // Loop over electrons
-    // nElectrons_ = 0;
-    // //for (const pat::Electron &el : *electrons) {
-    // for (const reco::GsfElectron &el : *electrons) {
+    // Loop over electrons
+    nElectrons_ = 0;
+    //for (const pat::Electron &el : *electrons) {
+    for (const reco::GsfElectron &el : *electrons) {
 
-    //     // Increase count of electrons in event
-    //     nElectrons_++;
+        // Increase count of electrons in event
+        nElectrons_++;
 
-    //     // Fill in the class variables for this particle; also sets E-p variables
-    //     setElectronVariables( el, iEvent, iSetup );
+        // Fill in the class variables for this particle; also sets E-p variables
+        setElectronVariables( el, iEvent, iSetup );
 
-    //     // Write class variables to the output tree
-    //     electronTree_->Fill();
+        // Write class variables to the output tree
+        electronTree_->Fill();
 
-    //     // Write E-p variables to the E-p tree
-    //     EpTree_->Fill();
+        // Write E-p variables to the E-p tree
+        EpTree_->Fill();
 
-    //     }
+        }
 
     // Get photon collection
     edm::Handle<reco::PhotonCollection> photons;
