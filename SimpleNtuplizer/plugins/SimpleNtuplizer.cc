@@ -40,6 +40,10 @@
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 #include "DataFormats/EgammaCandidates/interface/Photon.h"
 
+// For the GenPhoton -- Probably only one of these is necessary
+#include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
@@ -70,6 +74,7 @@
 //######################################
 
 class SimpleNtuplizer : public edm::EDAnalyzer {
+
     public:
         explicit SimpleNtuplizer(const edm::ParameterSet&);
         ~SimpleNtuplizer();
@@ -77,32 +82,33 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         void setElectronVariables( const reco::GsfElectron&, const edm::Event&, const edm::EventSetup& );
         void setPhotonVariables(   const reco::Photon&,      const edm::Event&, const edm::EventSetup& );
 
+        // void matchPhotonToGenParticle( const reco::PhotonCollection&, const reco::GenParticleCollection& );
+        // void matchPhotonToGenParticle( const edm::Handle<reco::PhotonCollection>, const edm::Handle<reco::GenParticleCollection> );
+        bool matchPhotonToGenParticle( const reco::Photon& );
+
         enum ElectronMatchType{
             UNMATCHED = 0, 
             TRUE_PROMPT_ELECTRON, 
             TRUE_ELECTRON_FROM_TAU,
             TRUE_NON_PROMPT_ELECTRON}; // The last does not include tau parents
 
+
     private:
         virtual void beginJob() override;
         virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
         virtual void endJob() override;
 
+
         // =====================================
         // Setting tokens
         
-        edm::EDGetTokenT<reco::VertexCollection> vtxToken_;
-        edm::EDGetTokenT<edm::View<PileupSummaryInfo> > pileupToken_;
-
-        // Defining electronToken from the electron collection
-        //edm::EDGetTokenT<pat::ElectronCollection> electronToken_;   // For miniAOD samples
+        edm::EDGetTokenT<reco::VertexCollection>      vtxToken_;
         edm::EDGetTokenT<reco::GsfElectronCollection> electronToken_; // For AODSIM samples
+        edm::EDGetTokenT<reco::PhotonCollection>      photonToken_;
+        edm::EDGetTokenT<reco::GenParticleCollection> genParticleToken_;
+        edm::EDGetTokenT<double>                      rhoToken_; 
 
-        edm::EDGetTokenT<reco::PhotonCollection> photonToken_;
-
-        edm::EDGetTokenT<edm::View<reco::GenParticle> > prunedGenToken_;
-        edm::EDGetTokenT<edm::View<pat::PackedGenParticle> > packedGenToken_;
-        edm::EDGetTokenT<double> rhoToken_; 
+        edm::Handle<reco::GenParticleCollection> genParticles;
 
 
         // =====================================
@@ -113,6 +119,7 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         Int_t nPV_;         // Number of reconsrtucted primary vertices
         Int_t nElectrons_;
         Int_t nPhotons_;
+        Int_t nPhotonsMatched_;
 
 
         // =====================================
@@ -224,6 +231,19 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         std::vector<Int_t>   ph_iXCoordinate_           ;
         std::vector<Int_t>   ph_iYCoordinate_           ;
 
+        // Matching variables
+        Float_t match_dR;
+        Float_t match_dE;
+        Float_t match_dRdE;
+
+        Float_t phgen_pt;
+        Float_t phgen_phi;
+        Float_t phgen_eta;
+        Float_t phgen_M;
+        Float_t phgen_E;
+        Float_t phgen_pdgId;
+        Float_t phgen_status;
+
     };
 
 
@@ -233,18 +253,11 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
 
 // Constructor
 SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
+    // All tokens given in the python config!
     vtxToken_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"))),
-    pileupToken_(consumes<edm::View<PileupSummaryInfo> >(iConfig.getParameter<edm::InputTag>("pileup"))),
-
-    // For miniAOD:
-    //electronToken_(consumes<pat::ElectronCollection>(iConfig.getParameter<edm::InputTag>("electrons"))),
-    // For AODSIM:
     electronToken_(consumes<reco::GsfElectronCollection>(iConfig.getParameter<edm::InputTag>("electrons"))),
-
     photonToken_(consumes<reco::PhotonCollection>(iConfig.getParameter<edm::InputTag>("photons"))),
-
-    prunedGenToken_(consumes<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("pruned"))),
-    packedGenToken_(consumes<edm::View<pat::PackedGenParticle> >(iConfig.getParameter<edm::InputTag>("packed"))),
+    genParticleToken_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("genparticles"))),
     rhoToken_(consumes<double> (iConfig.getParameter<edm::InputTag>("rho")))
     {
 
@@ -260,9 +273,10 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     eventTree_ = fs->make<TTree> ("EventTree", "Per event data");
 
     // Event variables
-    eventTree_->Branch( "nPV",        &nPV_,        "nPV/I"   );
-    eventTree_->Branch( "nElectrons", &nElectrons_, "nEle/I"  );
-    eventTree_->Branch( "nPhotons",   &nPhotons_,   "nPho/I"  );
+    eventTree_->Branch( "nPV",              &nPV_,             "nPV/I"   );
+    eventTree_->Branch( "nElectrons",       &nElectrons_,      "nEle/I"  );
+    eventTree_->Branch( "nPhotons",         &nPhotons_,        "nPho/I"  );
+    eventTree_->Branch( "nPhotonsMatched_", &nPhotonsMatched_, "nPhoMatched/I"  );
 
 
     // =====================================
@@ -373,6 +387,19 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     photonTree_->Branch( "iXCoordinate_",           &ph_iXCoordinate_           );
     photonTree_->Branch( "iYCoordinate_",           &ph_iYCoordinate_           );
 
+    // Matching variables
+
+    photonTree_->Branch( "match_dR",     &match_dR     );
+    photonTree_->Branch( "match_dE",     &match_dE     );
+    photonTree_->Branch( "match_dRdE",   &match_dRdE   );
+
+    photonTree_->Branch( "phgen_pt",     &phgen_pt     );
+    photonTree_->Branch( "phgen_phi",    &phgen_phi    );
+    photonTree_->Branch( "phgen_eta",    &phgen_eta    );
+    photonTree_->Branch( "phgen_M",      &phgen_M      );
+    photonTree_->Branch( "phgen_E",      &phgen_E      );
+    photonTree_->Branch( "phgen_pdgId",  &phgen_pdgId  );
+    photonTree_->Branch( "phgen_status", &phgen_status );
 
     }
 
@@ -397,22 +424,33 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
     using namespace edm;
     using namespace reco;
 
-    // // Pruned particles are the one containing "important" stuff
-    // Handle<edm::View<reco::GenParticle> > prunedGenParticles;
-    // iEvent.getByToken(prunedGenToken_,prunedGenParticles);
+    //######################################
+    //# Get all the collections
+    //######################################
 
-    // // Packed particles are all the status 1, so usable to remake jets
-    // // The navigation from status 1 to pruned is possible (the other direction should be made by hand)
-    // Handle<edm::View<pat::PackedGenParticle> > packedGenParticles;
-    // iEvent.getByToken(packedGenToken_,packedGenParticles);
-
-
-    // =====================================
-    // Determine number of primary vertices
-
+    // Get vertex collection
     edm::Handle<reco::VertexCollection> vertices;
     iEvent.getByToken(vtxToken_, vertices);
 
+    // Get electron collection
+    edm::Handle<reco::GsfElectronCollection> electrons;  // For AODSIM
+    iEvent.getByToken(electronToken_, electrons);
+
+    // Get photon collection
+    edm::Handle<reco::PhotonCollection> photons;
+    iEvent.getByToken(photonToken_, photons);
+
+    // Get GenParticle collection
+    // Definition moved --> class variable
+    // edm::Handle<reco::GenParticleCollection> genParticles;
+    iEvent.getByToken( genParticleToken_, genParticles );
+
+
+    //######################################
+    //# Event specific quantities (not used in regression)
+    //######################################
+
+    // Determine number of primary vertices
     if (vertices->empty()) nPV_ = 0;
     else nPV_ = vertices->size();
 
@@ -420,11 +458,6 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
     //######################################
     //# Analyze electrons
     //######################################
-
-    // Get electron collection
-    //edm::Handle<pat::ElectronCollection> electrons;    // For miniAOD
-    edm::Handle<reco::GsfElectronCollection> electrons;  // For AODSIM
-    iEvent.getByToken(electronToken_, electrons);
 
     // Loop over electrons
     nElectrons_ = 0;
@@ -437,7 +470,7 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
         // Fill in the class variables for this particle; also sets E-p variables
         setElectronVariables( el, iEvent, iSetup );
 
-        // Write class variables to the output tree
+        // Write class variables to the output EpTree_
         electronTree_->Fill();
 
         // Write E-p variables to the E-p tree
@@ -445,26 +478,24 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
 
         }
 
-    // Get photon collection
-    edm::Handle<reco::PhotonCollection> photons;
-    iEvent.getByToken(photonToken_, photons);
+    // for (const reco::GenParticle &genParticle : *genParticles) {
+    //     cout << "looping, genParticle pt = " << genParticle.pt() << endl;
+    //     }
 
-     // Loop over photons
+
+    // Attempt to match photons to genParticle
+    // matchPhotonToGenParticle( photons, genParticles );
+
+    // Loop over photons
     nPhotons_ = 0;
+    nPhotonsMatched_ = 0;
     for (const reco::Photon &photon : *photons) {
-
-        // Increase count of photons in event
-        nPhotons_++;
 
         // Fill in the class variables for this particle; also sets E-p variables
         setPhotonVariables( photon, iEvent, iSetup );
 
-        // Write class variables to the output tree
-        photonTree_->Fill();
-
         // Write E-p variables to the E-p tree
         //EpTree_->Fill();
-
         }
 
 
@@ -651,6 +682,23 @@ void SimpleNtuplizer::setPhotonVariables(
         const edm::Event& iEvent,
         const edm::EventSetup& iSetup ){
 
+    // =====================================
+    // Gen matching
+
+    // Increase count of photons in event
+    nPhotons_++;
+
+    // Try to match to genParticle; quit function if photon is not matched
+    bool successful_match = matchPhotonToGenParticle( photon );
+    if(!successful_match) return;
+
+    // Increase count of matched photons in event
+    nPhotonsMatched_++;
+
+
+    // =====================================
+    // Fill other variables
+
     // Set convenience variables
     const reco::SuperClusterRef& superCluster = photon.superCluster();
     const edm::Ptr<reco::CaloCluster>& seedCluster = superCluster->seed();
@@ -737,6 +785,118 @@ void SimpleNtuplizer::setPhotonVariables(
         ph_iXCoordinate_           .push_back( eeseedid.ix() );
         ph_iYCoordinate_           .push_back( eeseedid.iy() );
         }
+
+
+    // Write class variables to the output tree
+    photonTree_->Fill();
+
+    }
+
+
+
+
+
+bool SimpleNtuplizer::matchPhotonToGenParticle(
+        // const reco::PhotonCollection& photons,
+        // const reco::GenParticleCollection& genPartices
+        //const edm::Handle<reco::PhotonCollection> photons,
+
+        const reco::Photon& photon
+        // const edm::Handle<reco::GenParticleCollection> genParticles
+        ){
+
+    // int nTempCounter = 0;
+    // std::cout << "In matchPhotonToGenParticle" << std::endl;
+    // for (const reco::GenParticle &genParticle : *genParticles) {
+    //     nTempCounter++;
+    //     std::cout << "    genParticle " << nTempCounter << std::endl;
+    //     std::cout << "        pt     = " << genParticle.pt() << std::endl;
+    //     std::cout << "        eta    = " << genParticle.eta() << std::endl;
+    //     std::cout << "        phi    = " << genParticle.phi() << std::endl;
+    //     std::cout << "        pdgId  = " << genParticle.pdgId() << std::endl;
+    //     std::cout << "        status = " << genParticle.status() << std::endl;
+    //     }
+
+    //######################################
+    //# Start matching
+    //######################################
+
+    // =====================================
+    // Setting local matching variables
+
+    // Maximum match radius
+    double match_MaxDR = 0.5;
+
+    // Keep track of minimum dX's
+    double minDr   = 1e6;
+    double minDe   = 1e6;
+    double minDeDr = 1e6;
+
+    // dX's of the match between current photon and genParticle
+    double this_dr;
+    double this_de;
+    double this_dedr;
+
+    // Only use the photon if it's matched successfully
+    bool successful_match = false;
+    const reco::GenParticle* matched_genParticle;
+
+
+    // =====================================
+    // Loop over genParticles
+
+    for (const reco::GenParticle &genParticle : *genParticles) {
+
+        // Continue if pdgId is not 22 or status is not 1
+        if(!( abs(genParticle.pdgId())==22 && genParticle.status()==1 ))
+            continue;
+
+        // Calculate distance variables
+        this_dr   = reco::deltaR( genParticle, photon );
+        this_de   = fabs( genParticle.energy()- photon.energy() ) / genParticle.energy();
+        this_dedr = sqrt( this_dr*this_dr + this_de*this_de );
+
+        if( this_dr < match_MaxDR
+            // && this_dr<minDr       // matching type 1
+            // && this_de<minDe       // matching type 2
+            && this_dedr < minDeDr    // matching type 3
+            ){
+
+            minDr   = this_dr;
+            minDe   = this_de;
+            minDeDr = this_dedr;
+
+            successful_match = true;
+            matched_genParticle = &genParticle;
+
+            }
+        }
+
+    // std::cout << "        minDr   = " << minDr << std::endl;
+    // std::cout << "        minDe   = " << minDe << std::endl;
+    // std::cout << "        minDeDr = " << minDeDr << std::endl;
+
+    // Return if particle could not be matched
+    if(!successful_match) return successful_match;
+
+
+    // =====================================
+    // Fill necessary branches
+
+    match_dR     = minDr;
+    match_dE     = minDe;
+    match_dRdE   = minDeDr;
+    phgen_pt     = matched_genParticle->pt();
+    phgen_phi    = matched_genParticle->phi();
+    phgen_eta    = matched_genParticle->eta();
+    phgen_M      = matched_genParticle->mass();
+    phgen_E      = matched_genParticle->energy();
+    phgen_pdgId  = matched_genParticle->pdgId();
+    phgen_status = matched_genParticle->status();
+
+    // Return successful match value (should be true)
+    return successful_match;
+
     }
 
 
