@@ -85,6 +85,7 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         // void matchPhotonToGenParticle( const reco::PhotonCollection&, const reco::GenParticleCollection& );
         // void matchPhotonToGenParticle( const edm::Handle<reco::PhotonCollection>, const edm::Handle<reco::GenParticleCollection> );
         bool matchPhotonToGenParticle( const reco::Photon& );
+        bool matchElectronToGenParticle( const reco::GsfElectron& );
 
         enum ElectronMatchType{
             UNMATCHED = 0, 
@@ -118,6 +119,7 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
 
         Int_t nPV_;         // Number of reconsrtucted primary vertices
         Int_t nElectrons_;
+        Int_t nElectronsMatched_;
         Int_t nPhotons_;
         Int_t nPhotonsMatched_;
 
@@ -461,20 +463,15 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
 
     // Loop over electrons
     nElectrons_ = 0;
+    nElectronsMatched_ = 0;
     //for (const pat::Electron &el : *electrons) {
     for (const reco::GsfElectron &el : *electrons) {
-
-        // Increase count of electrons in event
-        nElectrons_++;
 
         // Fill in the class variables for this particle; also sets E-p variables
         setElectronVariables( el, iEvent, iSetup );
 
-        // Write class variables to the output EpTree_
-        electronTree_->Fill();
-
         // Write E-p variables to the E-p tree
-        EpTree_->Fill();
+        // EpTree_->Fill();
 
         }
 
@@ -490,10 +487,8 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
     nPhotons_ = 0;
     nPhotonsMatched_ = 0;
     for (const reco::Photon &photon : *photons) {
-
         // Fill in the class variables for this particle; also sets E-p variables
         setPhotonVariables( photon, iEvent, iSetup );
-
         // Write E-p variables to the E-p tree
         //EpTree_->Fill();
         }
@@ -518,6 +513,24 @@ void SimpleNtuplizer::setElectronVariables(
     using namespace std;
     using namespace edm;
     using namespace reco;
+
+
+    // =====================================
+    // Gen matching
+
+    // Increase count of photons in event
+    nElectrons_++;
+
+    // Try to match to genParticle; quit function if electron is not matched
+    bool successful_match = matchElectronToGenParticle( electron );
+    if(!successful_match) return;
+
+    // Increase count of matched photons in event
+    nElectronsMatched_++;
+
+
+    // =====================================
+    // Fill other variables
 
     //cout << "Setting class variables for type " << typeid(electron).name() << endl;
 
@@ -672,6 +685,11 @@ void SimpleNtuplizer::setElectronVariables(
     trackerDrivenSeedEp_ = electron.trackerDrivenSeed();
     classificationEp_    = int(electron.classification());
     isEBEp_              = electron.isEB();
+
+
+
+    // Write class variables to the output EpTree_
+    electronTree_->Fill();
 
     }
 
@@ -898,6 +916,111 @@ bool SimpleNtuplizer::matchPhotonToGenParticle(
     return successful_match;
 
     }
+
+
+
+bool SimpleNtuplizer::matchElectronToGenParticle(
+        // const reco::PhotonCollection& photons,
+        // const reco::GenParticleCollection& genPartices
+        //const edm::Handle<reco::PhotonCollection> photons,
+        const reco::GsfElectron& electron
+        // const edm::Handle<reco::GenParticleCollection> genParticles
+        ){
+
+    int nTempCounter = 0;
+    std::cout << "In matchElectronToGenParticle" << std::endl;
+    for (const reco::GenParticle &genParticle : *genParticles) {
+        nTempCounter++;
+        std::cout << "    genParticle " << nTempCounter << std::endl;
+        std::cout << "        pt     = " << genParticle.pt() << std::endl;
+        std::cout << "        eta    = " << genParticle.eta() << std::endl;
+        std::cout << "        phi    = " << genParticle.phi() << std::endl;
+        std::cout << "        pdgId  = " << genParticle.pdgId() << std::endl;
+        std::cout << "        status = " << genParticle.status() << std::endl;
+        }
+
+    //######################################
+    //# Start matching
+    //######################################
+
+    // =====================================
+    // Setting local matching variables
+
+    // Maximum match radius
+    double match_MaxDR = 0.5;
+
+    // Keep track of minimum dX's
+    double minDr   = 1e6;
+    double minDe   = 1e6;
+    double minDeDr = 1e6;
+
+    // dX's of the match between current electron and genParticle
+    double this_dr;
+    double this_de;
+    double this_dedr;
+
+    // Only use the electron if it's matched successfully
+    bool successful_match = false;
+    const reco::GenParticle* matched_genParticle;
+
+
+    // =====================================
+    // Loop over genParticles
+
+    for (const reco::GenParticle &genParticle : *genParticles) {
+
+        // Continue if pdgId is not 22 or status is not 1
+        if(!( abs(genParticle.pdgId())==11 && genParticle.status()==1 ))
+            continue;
+
+        // Calculate distance variables
+        this_dr   = reco::deltaR( genParticle, electron );
+        this_de   = fabs( genParticle.energy()- electron.energy() ) / genParticle.energy();
+        this_dedr = sqrt( this_dr*this_dr + this_de*this_de );
+
+        if( this_dr < match_MaxDR
+            // && this_dr<minDr       // matching type 1
+            // && this_de<minDe       // matching type 2
+            && this_dedr < minDeDr    // matching type 3
+            ){
+
+            minDr   = this_dr;
+            minDe   = this_de;
+            minDeDr = this_dedr;
+
+            successful_match = true;
+            matched_genParticle = &genParticle;
+
+            }
+        }
+
+    // std::cout << "        minDr   = " << minDr << std::endl;
+    // std::cout << "        minDe   = " << minDe << std::endl;
+    // std::cout << "        minDeDr = " << minDeDr << std::endl;
+
+    // Return if particle could not be matched
+    if(!successful_match) return successful_match;
+
+
+    // =====================================
+    // Fill necessary branches
+
+    match_dR     = minDr;
+    match_dE     = minDe;
+    match_dRdE   = minDeDr;
+    phgen_pt     = matched_genParticle->pt();
+    phgen_phi    = matched_genParticle->phi();
+    phgen_eta    = matched_genParticle->eta();
+    phgen_M      = matched_genParticle->mass();
+    phgen_E      = matched_genParticle->energy();
+    phgen_pdgId  = matched_genParticle->pdgId();
+    phgen_status = matched_genParticle->status();
+
+    // Return successful match value (should be true)
+    return successful_match;
+
+    }
+
 
 
 //######################################
