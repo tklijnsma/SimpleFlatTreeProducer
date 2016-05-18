@@ -46,10 +46,11 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     eventTree_ = fs->make<TTree> ("EventTree", "Per event data");
 
     // Event variables
-    eventTree_->Branch( "nPV",              &nPV_,             "nPV/I"   );
-    eventTree_->Branch( "nElectrons",       &nElectrons_,      "nEle/I"  );
-    eventTree_->Branch( "nPhotons",         &nPhotons_,        "nPho/I"  );
-    eventTree_->Branch( "nPhotonsMatched_", &nPhotonsMatched_, "nPhoMatched/I"  );
+    eventTree_->Branch( "nPV",               &nPV_,                "nPV/I"   );
+    eventTree_->Branch( "nElectrons",        &nElectrons_,         "nEle/I"  );
+    eventTree_->Branch( "nElectronsMatched", &nElectronsMatched_ , "nEleMatched/I"  );
+    eventTree_->Branch( "nPhotons",          &nPhotons_,           "nPho/I"  );
+    eventTree_->Branch( "nPhotonsMatched_",  &nPhotonsMatched_,    "nPhoMatched/I"  );
 
 
     // =====================================
@@ -255,9 +256,6 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
 
         // Fill in the class variables for this particle; also sets E-p variables
         setElectronVariables( el, iEvent, iSetup );
-
-        // Write E-p variables to the E-p tree
-        // EpTree_->Fill();
 
         }
 

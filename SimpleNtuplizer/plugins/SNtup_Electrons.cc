@@ -188,6 +188,9 @@ void SimpleNtuplizer::setElectronVariables(
     // Write class variables to the output EpTree_
     electronTree_->Fill();
 
+    // Write E-p variables to the E-p tree
+    EpTree_->Fill();
+
     }
 
 
@@ -202,17 +205,17 @@ bool SimpleNtuplizer::matchElectronToGenParticle(
         // const edm::Handle<reco::GenParticleCollection> genParticles
         ){
 
-    int nTempCounter = 0;
-    std::cout << "In matchElectronToGenParticle" << std::endl;
-    for (const reco::GenParticle &genParticle : *genParticles) {
-        nTempCounter++;
-        std::cout << "    genParticle " << nTempCounter << std::endl;
-        std::cout << "        pt     = " << genParticle.pt() << std::endl;
-        std::cout << "        eta    = " << genParticle.eta() << std::endl;
-        std::cout << "        phi    = " << genParticle.phi() << std::endl;
-        std::cout << "        pdgId  = " << genParticle.pdgId() << std::endl;
-        std::cout << "        status = " << genParticle.status() << std::endl;
-        }
+    // int nTempCounter = 0;
+    // std::cout << "In matchElectronToGenParticle" << std::endl;
+    // for (const reco::GenParticle &genParticle : *genParticles) {
+    //     nTempCounter++;
+    //     std::cout << "    genParticle " << nTempCounter << std::endl;
+    //     std::cout << "        pt     = " << genParticle.pt() << std::endl;
+    //     std::cout << "        eta    = " << genParticle.eta() << std::endl;
+    //     std::cout << "        phi    = " << genParticle.phi() << std::endl;
+    //     std::cout << "        pdgId  = " << genParticle.pdgId() << std::endl;
+    //     std::cout << "        status = " << genParticle.status() << std::endl;
+    //     }
 
     //######################################
     //# Start matching

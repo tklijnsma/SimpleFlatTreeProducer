@@ -114,6 +114,8 @@ void SimpleNtuplizer::setPhotonVariables(
     // Write class variables to the output tree
     photonTree_->Fill();
 
+    // TODO: What to do with the Ep variables?
+
     }
 
 
