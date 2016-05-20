@@ -81,6 +81,8 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
         virtual void endJob() override;
 
+        // Central event counter (specific to this output tree)
+        int eventNumber;
 
         // =====================================
         // Setting tokens
@@ -131,6 +133,9 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         Int_t isEB_;
         Float_t preshowerEnergy_;
 
+        Float_t trkMomentum;
+        Float_t trkMomentumError;
+
         // Currently either 0 or 1 entry, depending on whether event is EB or EE
         std::vector<Float_t> iEtaCoordinate_;
         std::vector<Float_t> iPhiCoordinate_;
@@ -146,10 +151,16 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         // Cluster variables
 
         // These contain either 0 or 1 entries
-        std::vector<Float_t> MaxDRclusterDR_;
-        std::vector<Float_t> MaxDRclusterDPhi_;
-        std::vector<Float_t> MaxDRclusterDEta_;
-        std::vector<Float_t> MaxDRclusterRawEnergy_;
+        // std::vector<Float_t> MaxDRclusterDR_;
+        // std::vector<Float_t> MaxDRclusterDPhi_;
+        // std::vector<Float_t> MaxDRclusterDEta_;
+        // std::vector<Float_t> MaxDRclusterRawEnergy_;
+
+        // Now always contains one entry, but this can be 999.!
+        Float_t MaxDRclusterDR;
+        Float_t MaxDRclusterDPhi;
+        Float_t MaxDRclusterDEta;
+        Float_t MaxDRclusterRawEnergy;
 
         std::vector<Float_t> clusterRawEnergy_;
         std::vector<Float_t> clusterDPhiToSeed_;
@@ -163,6 +174,7 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
 
         Float_t totEnergyEp_;
         Float_t epEp_;
+        Float_t epErrorEp_;
         Float_t epRelErrorEp_;
         Float_t ecalDrivenEp_;
         Float_t trackerDrivenSeedEp_;

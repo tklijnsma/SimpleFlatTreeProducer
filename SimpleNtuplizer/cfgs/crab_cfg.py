@@ -2,7 +2,11 @@ from CRABClient.UserUtilities import config
 config = config()
 
 #config.General.requestName              = 'TKNtup_1805_Photon'
-config.General.requestName              = 'TKNtup_1805_Electron'
+#config.General.requestName              = 'TKNtup_1805_Electron'
+
+#config.General.requestName              = 'TKNtup_2005_Electron_LIM'
+config.General.requestName              = 'TKNtup_2005_Electron'
+
 config.General.workArea                 = './'
 config.General.transferOutputs          = True
 config.General.transferLogs             = True
@@ -18,6 +22,9 @@ config.Data.splitting                   = 'FileBased'
 config.Data.unitsPerJob                 = 1
 config.Data.ignoreLocality              = True
 config.Data.publication                 = True
+
+# Limit number of files for test runs
+#config.Data.totalUnits                  = 10
 
 config.Data.outLFNDirBase               = '/store/user/tklijnsm'
 

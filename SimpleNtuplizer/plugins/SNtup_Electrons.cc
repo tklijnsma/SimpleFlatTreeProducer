@@ -67,6 +67,9 @@ void SimpleNtuplizer::setElectronVariables(
     numberOfClustersSC_ = numberOfClusters ;
     isEB_               = electron.isEB() ;
 
+    trkMomentum      = electron.trackMomentumAtVtx().R(); // .R() for length
+    trkMomentumError = electron.trackMomentumError();
+
 
     // =====================================
     // Cluster variables (subs of the superCluster)
@@ -76,17 +79,25 @@ void SimpleNtuplizer::setElectronVariables(
     clusterDPhiToSeed_.clear();
     clusterDEtaToSeed_.clear();
 
+    // Fill with zeroes for the needed amount of clusters
+    //   make sure at least indices 0, 1 and 2 are filled
+    clusterRawEnergy_.resize(std::max(3, numberOfClusters), 0);
+    clusterDPhiToSeed_.resize(std::max(3, numberOfClusters), 0);
+    clusterDEtaToSeed_.resize(std::max(3, numberOfClusters), 0);
+
     // These have either 0 or 1 entry
-    MaxDRclusterDR_.clear();
-    MaxDRclusterDPhi_.clear();
-    MaxDRclusterDEta_.clear();
-    MaxDRclusterRawEnergy_.clear();
+    // MaxDRclusterDR_.clear();
+    // MaxDRclusterDPhi_.clear();
+    // MaxDRclusterDEta_.clear();
+    // MaxDRclusterRawEnergy_.clear();
 
     // Default values
-    float MaxDRclusterDR        = 999.;
-    float MaxDRclusterDPhi      = 999.;
-    float MaxDRclusterDEta      = 999.;
-    float MaxDRclusterRawEnergy = 0.;
+    MaxDRclusterDR        = 0.; // Changed from 999.; Make sure it's considered
+    MaxDRclusterDPhi      = 0.; // Changed from 999.; Make sure it's considered
+    MaxDRclusterDEta      = 0.; // Changed from 999.; Make sure it's considered
+    MaxDRclusterRawEnergy = 0.;
+
+    // compared throughout loop
     float maxDR                 = 0.;
 
     // Define cluster
@@ -103,9 +114,12 @@ void SimpleNtuplizer::setElectronVariables(
         if( cluster == superCluster->seed() ) continue;
 
         // Set basic cluster quantities in vectors
-        clusterRawEnergy_  .push_back( cluster->energy() / rawEnergy );
-        clusterDPhiToSeed_ .push_back( reco::deltaPhi( cluster->phi(), superCluster->seed()->phi() ) );
-        clusterDEtaToSeed_ .push_back( cluster->eta() - superCluster->seed()->eta() );
+        // clusterRawEnergy_  .push_back( cluster->energy() / rawEnergy );
+        // clusterDPhiToSeed_ .push_back( reco::deltaPhi( cluster->phi(), superCluster->seed()->phi() ) );
+        // clusterDEtaToSeed_ .push_back( cluster->eta() - superCluster->seed()->eta() );
+        clusterRawEnergy_[i_cluster]  = cluster->energy() / rawEnergy;
+        clusterDPhiToSeed_[i_cluster] = reco::deltaPhi( cluster->phi(), superCluster->seed()->phi() );
+        clusterDEtaToSeed_[i_cluster] = cluster->eta() - superCluster->seed()->eta();
 
         // Find the cluster that has maximum delR to the seed
         const auto deltaR = reco::deltaR( *cluster, *superCluster->seed() );
@@ -120,17 +134,20 @@ void SimpleNtuplizer::setElectronVariables(
         i_cluster++;
 
         // If cutting off after a certain amount of clusters, set this limit here
-        if(i_cluster == 3) continue;
+        if(i_cluster == 3) break;
         }
 
-    // Write cluster variables to class member vectors, only if needed
-    if( i_cluster > 0 ) {
-        // Still use vectors, since these vars may be empty
-        MaxDRclusterDR_        .push_back( MaxDRclusterDR );    
-        MaxDRclusterDPhi_      .push_back( MaxDRclusterDPhi );    
-        MaxDRclusterDEta_      .push_back( MaxDRclusterDEta );    
-        MaxDRclusterRawEnergy_ .push_back( MaxDRclusterRawEnergy );
-        }
+
+    // No longer needed with default values
+
+    // // Write cluster variables to class member vectors, only if needed
+    // if( i_cluster > 0 ) {
+    //     // Still use vectors, since these vars may be empty
+    //     MaxDRclusterDR_        .push_back( MaxDRclusterDR );    
+    //     MaxDRclusterDPhi_      .push_back( MaxDRclusterDPhi );    
+    //     MaxDRclusterDEta_      .push_back( MaxDRclusterDEta );    
+    //     MaxDRclusterRawEnergy_ .push_back( MaxDRclusterRawEnergy );
+    //     }
 
 
     // =====================================
@@ -177,19 +194,18 @@ void SimpleNtuplizer::setElectronVariables(
 
     totEnergyEp_         = superCluster->rawEnergy() + superCluster->preshowerEnergy();
     epEp_                = electron.trackMomentumAtVtx().R();
+    epErrorEp_           = electron.trackMomentumError();
     epRelErrorEp_        = electron.trackMomentumError() / electron.trackMomentumAtVtx().R();
     ecalDrivenEp_        = electron.ecalDriven();
     trackerDrivenSeedEp_ = electron.trackerDrivenSeed();
     classificationEp_    = int(electron.classification());
     isEBEp_              = electron.isEB();
 
-
-
     // Write class variables to the output EpTree_
     electronTree_->Fill();
 
     // Write E-p variables to the E-p tree
-    EpTree_->Fill();
+    //EpTree_->Fill();
 
     }
 
@@ -298,4 +314,3 @@ bool SimpleNtuplizer::matchElectronToGenParticle(
     return successful_match;
 
     }
-

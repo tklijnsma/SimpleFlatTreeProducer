@@ -36,14 +36,14 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc'   , '')
 #process.GlobalTag.globaltag = '80X_mcRun2_asymptotic_2016_IdealEcalIC_v0'
 
 #process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(5) )
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(50) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(900) )
 
 readFiles = cms.untracked.vstring()
 secFiles = cms.untracked.vstring() 
 
 readFiles.extend([
     # This is an AODSIM example in 80X
-    'file:DoublePhoton_AODSIM_example.root',
+    #'file:DoublePhoton_AODSIM_example.root',
     'file:DoubleElectron_AODSIM_example.root',
     ])
 secFiles.extend([

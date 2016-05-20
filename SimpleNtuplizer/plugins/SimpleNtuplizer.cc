@@ -34,6 +34,9 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     rhoToken_(consumes<double> (iConfig.getParameter<edm::InputTag>("rho")))
     {
 
+    // Central event counter (specific to this output tree)
+    eventNumber = 0;
+
     std::cout << ">>>> Inside SimpleNtuplizer::constructor" << std::endl;
 
     edm::Service<TFileService> fs;
@@ -59,72 +62,84 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     electronTree_ = fs->make<TTree> ("ElectronTree", "Electron data");
 
     // Electron variables
-    electronTree_->Branch( "pt_",                 &pt_    );
-    electronTree_->Branch( "etaSC_",              &etaSC_ );
-    electronTree_->Branch( "phiSC_",              &phiSC_ );
-    electronTree_->Branch( "rawEnergySC_",        &rawEnergySC_ );
-    electronTree_->Branch( "etaWidthSC_",         &etaWidthSC_ );
-    electronTree_->Branch( "phiWidthSC_",         &phiWidthSC_ );
-    electronTree_->Branch( "r9SS_",               &r9SS_ );
-    electronTree_->Branch( "seedEnergySS_",       &seedEnergySS_ );
-    electronTree_->Branch( "eMaxSS_",             &eMaxSS_ );
-    electronTree_->Branch( "e2ndSS_",             &e2ndSS_ );
-    electronTree_->Branch( "eHorizontalSS_",      &eHorizontalSS_ );
-    electronTree_->Branch( "eVerticalSS_",        &eVerticalSS_ );
-    electronTree_->Branch( "sigmaIetaIetaSS_",    &sigmaIetaIetaSS_ );
-    electronTree_->Branch( "sigmaIetaIphiSS_",    &sigmaIetaIphiSS_ );
-    electronTree_->Branch( "sigmaIphiIphiSS_",    &sigmaIphiIphiSS_ );
-    electronTree_->Branch( "preshowerEnergy_",    &preshowerEnergy_ );
-    electronTree_->Branch( "numberOfClustersSC_", &numberOfClustersSC_ );
-    electronTree_->Branch( "isEB_",               &isEB_ );
+    //  - All branch names now without a dash
+    //  - Switched SC / SS tags to the front
+
+    electronTree_->Branch( "nPV",                           &nPV_ );
+    electronTree_->Branch( "eventNumber",                   &eventNumber );
+
+    electronTree_->Branch( "pt",                            &pt_    );
+    electronTree_->Branch( "SC_eta",                        &etaSC_ );
+    electronTree_->Branch( "SC_phi",                        &phiSC_ );
+    electronTree_->Branch( "SC_rawEnergy",                  &rawEnergySC_ );
+    electronTree_->Branch( "SC_etaWidth",                   &etaWidthSC_ );
+    electronTree_->Branch( "SC_phiWidth",                   &phiWidthSC_ );
+    electronTree_->Branch( "SS_r9",                         &r9SS_ );
+    electronTree_->Branch( "SS_seedEnergy_overRaw",         &seedEnergySS_ );
+    electronTree_->Branch( "SS_eMax_overRaw",               &eMaxSS_ );
+    electronTree_->Branch( "SS_e2nd_overRaw",               &e2ndSS_ );
+    electronTree_->Branch( "SS_eHorizontal",                &eHorizontalSS_ );
+    electronTree_->Branch( "SS_eVertical",                  &eVerticalSS_ );
+    electronTree_->Branch( "SS_sigmaIetaIeta",              &sigmaIetaIetaSS_ );
+    electronTree_->Branch( "SS_sigmaIetaIphi",              &sigmaIetaIphiSS_ );
+    electronTree_->Branch( "SS_sigmaIphiIphi",              &sigmaIphiIphiSS_ );
+    electronTree_->Branch( "preshowerEnergy_overRaw",       &preshowerEnergy_ );
+    electronTree_->Branch( "SC_numberOfClustersSC",         &numberOfClustersSC_ );
+    electronTree_->Branch( "isEB",                          &isEB_ );
+
+    //electronTree_->Branch( "trkMomentum",                 &trkMomentum );
+    //electronTree_->Branch( "trkMomentumError",            &trkMomentumError );
 
     // These for EB electrons
-    electronTree_->Branch( "iEtaCoordinate_",     &iEtaCoordinate_ );         
-    electronTree_->Branch( "iPhiCoordinate_",     &iPhiCoordinate_ );         
-    electronTree_->Branch( "cryEtaCoordinate_",   &cryEtaCoordinate_ );
-    electronTree_->Branch( "cryPhiCoordinate_",   &cryPhiCoordinate_ );
+    electronTree_->Branch( "iEtaCoordinate",                &iEtaCoordinate_ );         
+    electronTree_->Branch( "iPhiCoordinate",                &iPhiCoordinate_ );         
+    electronTree_->Branch( "cryEtaCoordinate",              &cryEtaCoordinate_ );
+    electronTree_->Branch( "cryPhiCoordinate",              &cryPhiCoordinate_ );
 
     // These for EE electrons
-    electronTree_->Branch( "iXCoordinate_",       &iXCoordinate_ );         
-    electronTree_->Branch( "iYCoordinate_",       &iYCoordinate_ );         
-    electronTree_->Branch( "cryXCoordinate_",     &cryXCoordinate_ );
-    electronTree_->Branch( "cryYCoordinate_",     &cryYCoordinate_ );
+    electronTree_->Branch( "iXCoordinate",                  &iXCoordinate_ );         
+    electronTree_->Branch( "iYCoordinate",                  &iYCoordinate_ );         
+    electronTree_->Branch( "cryXCoordinate",                &cryXCoordinate_ );
+    electronTree_->Branch( "cryYCoordinate",                &cryYCoordinate_ );
 
-    // Cluster variables
-    electronTree_->Branch( "MaxDRclusterDR_",        &MaxDRclusterDR_ );
-    electronTree_->Branch( "MaxDRclusterDPhi_",      &MaxDRclusterDPhi_ );
-    electronTree_->Branch( "MaxDRclusterDEta_",      &MaxDRclusterDEta_ );
-    electronTree_->Branch( "MaxDRclusterRawEnergy_", &MaxDRclusterRawEnergy_ );
+    // Max dR Cluster variables (now always 1 entry)
+    electronTree_->Branch( "MaxDRclusterDR",                &MaxDRclusterDR );
+    electronTree_->Branch( "MaxDRclusterDPhi",              &MaxDRclusterDPhi );
+    electronTree_->Branch( "MaxDRclusterDEta",              &MaxDRclusterDEta );
+    electronTree_->Branch( "MaxDRclusterRawEnergy_overRaw", &MaxDRclusterRawEnergy );
 
-    electronTree_->Branch( "clusterRawEnergy_",      &clusterRawEnergy_ );        
-    electronTree_->Branch( "clusterDPhiToSeed_",     &clusterDPhiToSeed_ );         
-    electronTree_->Branch( "clusterDEtaToSeed_",     &clusterDEtaToSeed_ );
+    // Separate cluster variables; currently contain exactly 3 elements
+    electronTree_->Branch( "clusterRawEnergy_overRaw",      &clusterRawEnergy_ );        
+    electronTree_->Branch( "clusterDPhiToSeed",             &clusterDPhiToSeed_ );         
+    electronTree_->Branch( "clusterDEtaToSeed",             &clusterDEtaToSeed_ );
 
-    electronTree_->Branch( "match_dR",     &match_dR     );
-    electronTree_->Branch( "match_dE",     &match_dE     );
-    electronTree_->Branch( "match_dRdE",   &match_dRdE   );
+    electronTree_->Branch( "match_dR",                      &match_dR     );
+    electronTree_->Branch( "match_dE",                      &match_dE     );
+    electronTree_->Branch( "match_dRdE",                    &match_dRdE   );
 
-    electronTree_->Branch( "gen_pt",     &gen_pt     );
-    electronTree_->Branch( "gen_phi",    &gen_phi    );
-    electronTree_->Branch( "gen_eta",    &gen_eta    );
-    electronTree_->Branch( "gen_M",      &gen_M      );
-    electronTree_->Branch( "gen_E",      &gen_E      );
-    electronTree_->Branch( "gen_pdgId",  &gen_pdgId  );
-    electronTree_->Branch( "gen_status", &gen_status );
+    electronTree_->Branch( "gen_pt",                        &gen_pt     );
+    electronTree_->Branch( "gen_phi",                       &gen_phi    );
+    electronTree_->Branch( "gen_eta",                       &gen_eta    );
+    electronTree_->Branch( "gen_M",                         &gen_M      );
+    electronTree_->Branch( "gen_E",                         &gen_E      );
+    electronTree_->Branch( "gen_pdgId",                     &gen_pdgId  );
+    electronTree_->Branch( "gen_status",                    &gen_status );
 
 
     // =====================================
     // Making E-p tree and setting branches
 
-    EpTree_ = fs->make<TTree> ("EpTree", "E-p data");
+    // EpTree_ = fs->make<TTree> ("EpTree", "E-p data");
+    // --> Just put this in the Electron tree as well
 
-    EpTree_->Branch( "totEnergyEp_",         &totEnergyEp_ );
-    EpTree_->Branch( "epEp_",                &epEp_ );
-    EpTree_->Branch( "epRelErrorEp_",        &epRelErrorEp_ );
-    EpTree_->Branch( "ecalDrivenEp_",        &ecalDrivenEp_ );
-    EpTree_->Branch( "trackerDrivenSeedEp_", &trackerDrivenSeedEp_ );
-    EpTree_->Branch( "classificationEp_",    &classificationEp_ );
-    EpTree_->Branch( "isEBEp_",              &isEBEp_ );
+    electronTree_->Branch( "EP_totEnergy",            &totEnergyEp_ );
+    electronTree_->Branch( "EP_trkMomentum",          &epEp_ );
+    electronTree_->Branch( "EP_trkMomentumError",     &epErrorEp_ );
+    electronTree_->Branch( "EP_trkMomentumRelError",  &epRelErrorEp_ );
+    electronTree_->Branch( "EP_ecalDriven",           &ecalDrivenEp_ );
+    electronTree_->Branch( "EP_trackerDrivenSeed",    &trackerDrivenSeedEp_ );
+    electronTree_->Branch( "EP_classification",       &classificationEp_ );
+    electronTree_->Branch( "EP_isEB",                 &isEBEp_ );
 
 
     // =====================================
@@ -238,6 +253,9 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
     //######################################
     //# Event specific quantities (not used in regression)
     //######################################
+
+    // Central event counter (specific to this output tree)
+    eventNumber++;
 
     // Determine number of primary vertices
     if (vertices->empty()) nPV_ = 0;
