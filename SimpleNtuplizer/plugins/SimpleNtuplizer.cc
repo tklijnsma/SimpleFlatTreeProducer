@@ -53,7 +53,7 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     eventTree_->Branch( "nElectrons",        &nElectrons_,         "nEle/I"  );
     eventTree_->Branch( "nElectronsMatched", &nElectronsMatched_ , "nEleMatched/I"  );
     eventTree_->Branch( "nPhotons",          &nPhotons_,           "nPho/I"  );
-    eventTree_->Branch( "nPhotonsMatched_",  &nPhotonsMatched_,    "nPhoMatched/I"  );
+    eventTree_->Branch( "nPhotonsMatched",   &nPhotonsMatched_,    "nPhoMatched/I"  );
 
 
     // =====================================
@@ -147,46 +147,46 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
 
     photonTree_ = fs->make<TTree> ("PhotonTree", "Photon data");
 
-    photonTree_->Branch( "rawEnergy_",        &ph_rawEnergy_        );
-    photonTree_->Branch( "r9_",               &ph_r9_               );
-    photonTree_->Branch( "etaWidth_",         &ph_etaWidth_         );
-    photonTree_->Branch( "phiWidth_",         &ph_phiWidth_         );
-    photonTree_->Branch( "numberOfClusters_", &ph_numberOfClusters_ );                     
-    photonTree_->Branch( "hadronicOverEm_",   &ph_hadronicOverEm_   );
-    photonTree_->Branch( "rhoValue_",         &ph_rhoValue_         );
-    photonTree_->Branch( "delEtaSeed_",       &ph_delEtaSeed_       );
-    photonTree_->Branch( "delPhiSeed_",       &ph_delPhiSeed_       );
-    photonTree_->Branch( "seedEnergy_",       &ph_seedEnergy_       );
-    photonTree_->Branch( "3x3_5x5_",          &ph_3x3_5x5_          );
-    photonTree_->Branch( "sigmaIetaIeta_",    &ph_sigmaIetaIeta_    );
-    photonTree_->Branch( "sigmaIphiIphi_",    &ph_sigmaIphiIphi_    );
-    photonTree_->Branch( "sigmaIetaIphi_",    &ph_sigmaIetaIphi_    );
-    photonTree_->Branch( "Emax_5x5_",         &ph_Emax_5x5_         );
-    photonTree_->Branch( "e2nd_5x5_",         &ph_e2nd_5x5_         );
-    photonTree_->Branch( "eTop_5x5_",         &ph_eTop_5x5_         );
-    photonTree_->Branch( "eBottom_5x5_",      &ph_eBottom_5x5_      );
-    photonTree_->Branch( "eLeft_5x5_",        &ph_eLeft_5x5_        );
-    photonTree_->Branch( "eRight_5x5_",       &ph_eRight_5x5_       );
-    photonTree_->Branch( "e2x5Max_5x5_",      &ph_e2x5Max_5x5_      );
-    photonTree_->Branch( "e2x5Left_5x5_",     &ph_e2x5Left_5x5_     );
-    photonTree_->Branch( "e2x5Right_5x5_",    &ph_e2x5Right_5x5_    );
-    photonTree_->Branch( "e2x5Top_5x5_",      &ph_e2x5Top_5x5_      );
-    photonTree_->Branch( "e2x5Bottom_5x5_",   &ph_e2x5Bottom_5x5_   );
+    photonTree_->Branch( "rawEnergy",        &ph_rawEnergy_        );
+    photonTree_->Branch( "r9",               &ph_r9_               );
+    photonTree_->Branch( "etaWidth",         &ph_etaWidth_         );
+    photonTree_->Branch( "phiWidth",         &ph_phiWidth_         );
+    photonTree_->Branch( "numberOfClusters", &ph_numberOfClusters_ );                     
+    photonTree_->Branch( "hadronicOverEm",   &ph_hadronicOverEm_   );
+    photonTree_->Branch( "rhoValue",         &ph_rhoValue_         );
+    photonTree_->Branch( "delEtaSeed",       &ph_delEtaSeed_       );
+    photonTree_->Branch( "delPhiSeed",       &ph_delPhiSeed_       );
+    photonTree_->Branch( "seedEnergy",       &ph_seedEnergy_       );
+    photonTree_->Branch( "3x3_5x5",          &ph_3x3_5x5_          );
+    photonTree_->Branch( "sigmaIetaIeta",    &ph_sigmaIetaIeta_    );
+    photonTree_->Branch( "sigmaIphiIphi",    &ph_sigmaIphiIphi_    );
+    photonTree_->Branch( "sigmaIetaIphi",    &ph_sigmaIetaIphi_    );
+    photonTree_->Branch( "Emax_5x5",         &ph_Emax_5x5_         );
+    photonTree_->Branch( "e2nd_5x5",         &ph_e2nd_5x5_         );
+    photonTree_->Branch( "eTop_5x5",         &ph_eTop_5x5_         );
+    photonTree_->Branch( "eBottom_5x5",      &ph_eBottom_5x5_      );
+    photonTree_->Branch( "eLeft_5x5",        &ph_eLeft_5x5_        );
+    photonTree_->Branch( "eRight_5x5",       &ph_eRight_5x5_       );
+    photonTree_->Branch( "e2x5Max_5x5",      &ph_e2x5Max_5x5_      );
+    photonTree_->Branch( "e2x5Left_5x5",     &ph_e2x5Left_5x5_     );
+    photonTree_->Branch( "e2x5Right_5x5",    &ph_e2x5Right_5x5_    );
+    photonTree_->Branch( "e2x5Top_5x5",      &ph_e2x5Top_5x5_      );
+    photonTree_->Branch( "e2x5Bottom_5x5",   &ph_e2x5Bottom_5x5_   );
 
     // Coordinate variables
-    photonTree_->Branch( "isEB_",                   &ph_isEB_                   );
-    photonTree_->Branch( "5x5_seedEnergy_",         &ph_5x5_seedEnergy_         );
-    photonTree_->Branch( "iEtaCoordinate_",         &ph_iEtaCoordinate_         );
-    photonTree_->Branch( "iPhiCoordinate_",         &ph_iPhiCoordinate_         );
-    photonTree_->Branch( "iEtaMod5_",               &ph_iEtaMod5_               );
-    photonTree_->Branch( "iPhiMod2_",               &ph_iPhiMod2_               );
-    photonTree_->Branch( "iEtaMod20_",              &ph_iEtaMod20_              );
-    photonTree_->Branch( "iPhiMod20_",              &ph_iPhiMod20_              );
-    photonTree_->Branch( "preShowerE_rawEnergy_",   &ph_preShowerE_rawEnergy_   );
-    photonTree_->Branch( "preShowerEp1_rawEnergy_", &ph_preShowerEp1_rawEnergy_ );
-    photonTree_->Branch( "preShowerEp2_rawEnergy_", &ph_preShowerEp2_rawEnergy_ );
-    photonTree_->Branch( "iXCoordinate_",           &ph_iXCoordinate_           );
-    photonTree_->Branch( "iYCoordinate_",           &ph_iYCoordinate_           );
+    photonTree_->Branch( "isEB",                   &ph_isEB_                   );
+    photonTree_->Branch( "5x5_seedEnergy",         &ph_5x5_seedEnergy_         );
+    photonTree_->Branch( "iEtaCoordinate",         &ph_iEtaCoordinate_         );
+    photonTree_->Branch( "iPhiCoordinate",         &ph_iPhiCoordinate_         );
+    photonTree_->Branch( "iEtaMod5",               &ph_iEtaMod5_               );
+    photonTree_->Branch( "iPhiMod2",               &ph_iPhiMod2_               );
+    photonTree_->Branch( "iEtaMod20",              &ph_iEtaMod20_              );
+    photonTree_->Branch( "iPhiMod20",              &ph_iPhiMod20_              );
+    photonTree_->Branch( "preShowerE_rawEnergy",   &ph_preShowerE_rawEnergy_   );
+    photonTree_->Branch( "preShowerEp1_rawEnergy", &ph_preShowerEp1_rawEnergy_ );
+    photonTree_->Branch( "preShowerEp2_rawEnergy", &ph_preShowerEp2_rawEnergy_ );
+    photonTree_->Branch( "iXCoordinate",           &ph_iXCoordinate_           );
+    photonTree_->Branch( "iYCoordinate",           &ph_iYCoordinate_           );
 
     // Matching variables
 
