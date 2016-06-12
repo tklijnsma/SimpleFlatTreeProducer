@@ -6,7 +6,14 @@ config = config()
 
 #config.General.requestName              = 'TKNtup_2005_Electron_LIM'
 #config.General.requestName              = 'TKNtup_2005_Electron'
-config.General.requestName              = 'TKNtup_3005_Photon'
+#config.General.requestName              = 'TKNtup_3005_Photon'
+
+#config.General.requestName              = 'TKNtup_0106_Photon'
+#config.General.requestName              = 'TKNtup_0106_Electron'
+#config.General.requestName              = 'TKNtup_0306_Electron_HiPt'
+# config.General.requestName              = 'TKNtup_0306_Photon_HiPt'
+
+config.General.requestName              = 'TKNtup_12June_Photon_highpt_corr'
 
 config.General.workArea                 = './'
 config.General.transferOutputs          = True
@@ -16,8 +23,12 @@ config.JobType.pluginName               = 'Analysis'
 config.JobType.psetName                 = 'test1_cfg.py'
 config.JobType.allowUndistributedCMSSW  = True
 
-config.Data.inputDataset                = '/DoublePhoton_FlatPt-5To300/RunIISpring16DR80-PUFlat0to50_80X_mcRun2_asymptotic_2016_v3-v1/AODSIM'
+# config.Data.inputDataset                = '/DoublePhoton_FlatPt-5To300/RunIISpring16DR80-PUFlat0to50_80X_mcRun2_asymptotic_2016_v3-v1/AODSIM'
 #config.Data.inputDataset                = '/DoubleElectron_FlatPt-1To300/RunIISpring16DR80-PUFlat0to50_80X_mcRun2_asymptotic_2016_v3-v1/AODSIM'
+# High energy data sets
+config.Data.inputDataset                = '/DoublePhoton_FlatPt-300To6500/RunIISpring16DR80-PUFlat0to50_80X_mcRun2_asymptotic_2016_v3-v1/AODSIM'
+# config.Data.inputDataset                = '/DoubleElectron_FlatPt-300To6500/RunIISpring16DR80-PUFlat0to50_80X_mcRun2_asymptotic_2016_v3-v1/AODSIM'
+
 config.Data.inputDBS                    = 'global'
 config.Data.splitting                   = 'FileBased'
 config.Data.unitsPerJob                 = 1

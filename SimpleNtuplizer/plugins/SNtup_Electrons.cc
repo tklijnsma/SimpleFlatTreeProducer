@@ -42,63 +42,58 @@ void SimpleNtuplizer::setElectronVariables(
     rawEnergy = superCluster->rawEnergy();
 
     // Write electron variables to class variables
-    pt_              = electron.pt() ;
-    rawEnergySC_     = rawEnergy ;
-    etaSC_           = superCluster->eta() ;
-    phiSC_           = superCluster->phi() ;
-    etaWidthSC_      = superCluster->etaWidth() ;
-    phiWidthSC_      = superCluster->phiWidth() ;
-    r9SS_            = electron.showerShape().r9 ;
-    seedEnergySS_    = superCluster->seed()->energy() / rawEnergy ;
-    eMaxSS_          = electron.showerShape().eMax / rawEnergy ;
-    e2ndSS_          = electron.showerShape().e2nd / rawEnergy ;
-    eHorizontalSS_   = electron.showerShape().eLeft + electron.showerShape().eRight != 0.f  
-                                 ? ( electron.showerShape().eLeft - electron.showerShape().eRight ) /
-                                   ( electron.showerShape().eLeft + electron.showerShape().eRight ) : 0.f  ;
-    eVerticalSS_     = electron.showerShape().eTop + electron.showerShape().eBottom != 0.f
-                                 ? ( electron.showerShape().eTop - electron.showerShape().eBottom ) /
-                                   ( electron.showerShape().eTop + electron.showerShape().eBottom ) : 0.f  ;
-    sigmaIetaIetaSS_ = electron.showerShape().sigmaIetaIeta ;
-    sigmaIetaIphiSS_ = electron.showerShape().sigmaIetaIphi ;
-    sigmaIphiIphiSS_ = electron.showerShape().sigmaIphiIphi ;
-    preshowerEnergy_ = superCluster->preshowerEnergy() / superCluster->rawEnergy() ;        
+    pt_e               = electron.pt() ;
+    rawEnergy_e        = rawEnergy ;
+    eta_e              = superCluster->eta() ;
+    phi_e              = superCluster->phi() ;
+    etaWidth_e         = superCluster->etaWidth() ;
+    phiWidth_e         = superCluster->phiWidth() ;
+    r9_e               = electron.showerShape().r9 ;
+    seedEnergy_e       = superCluster->seed()->energy() ;
+    eMax_e             = electron.showerShape().eMax ;
+    e2nd_e             = electron.showerShape().e2nd ;
+    eHorizontal_e      = electron.showerShape().eLeft + electron.showerShape().eRight != 0.f  
+                                    ? ( electron.showerShape().eLeft - electron.showerShape().eRight ) /
+                                      ( electron.showerShape().eLeft + electron.showerShape().eRight ) : 0.f  ;
+    eVertical_e        = electron.showerShape().eTop + electron.showerShape().eBottom != 0.f
+                                    ? ( electron.showerShape().eTop - electron.showerShape().eBottom ) /
+                                      ( electron.showerShape().eTop + electron.showerShape().eBottom ) : 0.f  ;
+    sigmaIetaIeta_e    = electron.showerShape().sigmaIetaIeta ;
+    sigmaIetaIphi_e    = electron.showerShape().sigmaIetaIphi ;
+    sigmaIphiIphi_e    = electron.showerShape().sigmaIphiIphi ;
+    preshowerEnergy_e  = superCluster->preshowerEnergy() ;        
 
-    numberOfClusters = std::max( 0, int (superCluster->clusters().size()) );
-    numberOfClustersSC_ = numberOfClusters ;
-    isEB_               = electron.isEB() ;
+    numberOfClusters   = std::max( 0, int (superCluster->clusters().size()) );
+    numberOfClusters_e = numberOfClusters ;
+    isEB_e             = electron.isEB() ;
 
-    trkMomentum      = electron.trackMomentumAtVtx().R(); // .R() for length
-    trkMomentumError = electron.trackMomentumError();
-
+    // To compare to current 'official' regression
+    IsEcalEnergyCorrected_e    = electron.corrections().isEcalEnergyCorrected;
+    CorrectedEcalEnergy_e      = electron.corrections().correctedEcalEnergy;
+    CorrectedEcalEnergyError_e = electron.corrections().correctedEcalEnergyError;
 
     // =====================================
     // Cluster variables (subs of the superCluster)
 
     // Clear the std::vectors from the previous electron
-    clusterRawEnergy_.clear();
-    clusterDPhiToSeed_.clear();
-    clusterDEtaToSeed_.clear();
+    clusterRawEnergy_e.clear();
+    clusterDPhiToSeed_e.clear();
+    clusterDEtaToSeed_e.clear();
 
     // Fill with zeroes for the needed amount of clusters
     //   make sure at least indices 0, 1 and 2 are filled
-    clusterRawEnergy_.resize(std::max(3, numberOfClusters), 0);
-    clusterDPhiToSeed_.resize(std::max(3, numberOfClusters), 0);
-    clusterDEtaToSeed_.resize(std::max(3, numberOfClusters), 0);
-
-    // These have either 0 or 1 entry
-    // MaxDRclusterDR_.clear();
-    // MaxDRclusterDPhi_.clear();
-    // MaxDRclusterDEta_.clear();
-    // MaxDRclusterRawEnergy_.clear();
+    clusterRawEnergy_e.resize(std::max(3, numberOfClusters), 0);
+    clusterDPhiToSeed_e.resize(std::max(3, numberOfClusters), 0);
+    clusterDEtaToSeed_e.resize(std::max(3, numberOfClusters), 0);
 
     // Default values
-    MaxDRclusterDR        = 0.; // Changed from 999.; Make sure it's considered
-    MaxDRclusterDPhi      = 0.; // Changed from 999.; Make sure it's considered
-    MaxDRclusterDEta      = 0.; // Changed from 999.; Make sure it's considered
-    MaxDRclusterRawEnergy = 0.;
+    MaxDRclusterDR_e        = 0.; // Changed from 999.; Make sure it's considered
+    MaxDRclusterDPhi_e      = 0.; // Changed from 999.; Make sure it's considered
+    MaxDRclusterDEta_e      = 0.; // Changed from 999.; Make sure it's considered
+    MaxDRclusterRawEnergy_e = 0.;
 
     // compared throughout loop
-    float maxDR                 = 0.;
+    float maxDR             = 0.;
 
     // Define cluster
     edm::Ptr<reco::CaloCluster> cluster;
@@ -117,18 +112,18 @@ void SimpleNtuplizer::setElectronVariables(
         // clusterRawEnergy_  .push_back( cluster->energy() / rawEnergy );
         // clusterDPhiToSeed_ .push_back( reco::deltaPhi( cluster->phi(), superCluster->seed()->phi() ) );
         // clusterDEtaToSeed_ .push_back( cluster->eta() - superCluster->seed()->eta() );
-        clusterRawEnergy_[i_cluster]  = cluster->energy() / rawEnergy;
-        clusterDPhiToSeed_[i_cluster] = reco::deltaPhi( cluster->phi(), superCluster->seed()->phi() );
-        clusterDEtaToSeed_[i_cluster] = cluster->eta() - superCluster->seed()->eta();
+        clusterRawEnergy_e[i_cluster]  = cluster->energy() ;
+        clusterDPhiToSeed_e[i_cluster] = reco::deltaPhi( cluster->phi(), superCluster->seed()->phi() );
+        clusterDEtaToSeed_e[i_cluster] = cluster->eta() - superCluster->seed()->eta();
 
         // Find the cluster that has maximum delR to the seed
         const auto deltaR = reco::deltaR( *cluster, *superCluster->seed() );
         if( deltaR > maxDR) {
             maxDR = deltaR;
-            MaxDRclusterDR        = maxDR;
-            MaxDRclusterDPhi      = clusterDPhiToSeed_[i_cluster];
-            MaxDRclusterDEta      = clusterDEtaToSeed_[i_cluster];
-            MaxDRclusterRawEnergy = clusterRawEnergy_[i_cluster];
+            MaxDRclusterDR_e        = maxDR;
+            MaxDRclusterDPhi_e      = clusterDPhiToSeed_e[i_cluster];
+            MaxDRclusterDEta_e      = clusterDEtaToSeed_e[i_cluster];
+            MaxDRclusterRawEnergy_e = clusterRawEnergy_e[i_cluster];
             }
 
         i_cluster++;
@@ -136,18 +131,6 @@ void SimpleNtuplizer::setElectronVariables(
         // If cutting off after a certain amount of clusters, set this limit here
         if(i_cluster == 3) break;
         }
-
-
-    // No longer needed with default values
-
-    // // Write cluster variables to class member vectors, only if needed
-    // if( i_cluster > 0 ) {
-    //     // Still use vectors, since these vars may be empty
-    //     MaxDRclusterDR_        .push_back( MaxDRclusterDR );    
-    //     MaxDRclusterDPhi_      .push_back( MaxDRclusterDPhi );    
-    //     MaxDRclusterDEta_      .push_back( MaxDRclusterDEta );    
-    //     MaxDRclusterRawEnergy_ .push_back( MaxDRclusterRawEnergy );
-    //     }
 
 
     // =====================================
@@ -159,32 +142,32 @@ void SimpleNtuplizer::setElectronVariables(
     EcalClusterLocal ecalLocal;
 
     // Clear up values from previous electron
-    iEtaCoordinate_.clear();
-    iPhiCoordinate_.clear();
-    cryEtaCoordinate_.clear();
-    cryPhiCoordinate_.clear();
+    iEtaCoordinate_e.clear();
+    iPhiCoordinate_e.clear();
+    cryEtaCoordinate_e.clear();
+    cryPhiCoordinate_e.clear();
 
-    iXCoordinate_.clear();
-    iYCoordinate_.clear();
-    cryXCoordinate_.clear();
-    cryYCoordinate_.clear();
+    iXCoordinate_e.clear();
+    iYCoordinate_e.clear();
+    cryXCoordinate_e.clear();
+    cryYCoordinate_e.clear();
 
     if( electron.isEB() ){
         ecalLocal.localCoordsEB( *superCluster->seed(), iSetup,
                                   cryEta, cryPhi, iEta, iPhi, dummy, dummy );
-        iEtaCoordinate_   .push_back( iEta );
-        iPhiCoordinate_   .push_back( iPhi );
-        cryEtaCoordinate_ .push_back( cryEta );
-        cryPhiCoordinate_ .push_back( cryPhi );
+        iEtaCoordinate_e   .push_back( iEta );
+        iPhiCoordinate_e   .push_back( iPhi );
+        cryEtaCoordinate_e .push_back( cryEta );
+        cryPhiCoordinate_e .push_back( cryPhi );
         }
 
     else{
         ecalLocal.localCoordsEE( *superCluster->seed(), iSetup,
                                   cryX, cryY, iX, iY, dummy, dummy );
-        iXCoordinate_     .push_back( iX );
-        iYCoordinate_     .push_back( iY );
-        cryXCoordinate_   .push_back( cryX );
-        cryYCoordinate_   .push_back( cryY );
+        iXCoordinate_e     .push_back( iX );
+        iYCoordinate_e     .push_back( iY );
+        cryXCoordinate_e   .push_back( cryX );
+        cryYCoordinate_e   .push_back( cryY );
         }
 
 
@@ -192,25 +175,17 @@ void SimpleNtuplizer::setElectronVariables(
     //# Analyze EP
     //######################################
 
-    totEnergyEp_         = superCluster->rawEnergy() + superCluster->preshowerEnergy();
-    epEp_                = electron.trackMomentumAtVtx().R();
-    epErrorEp_           = electron.trackMomentumError();
-    epRelErrorEp_        = electron.trackMomentumError() / electron.trackMomentumAtVtx().R();
-    ecalDrivenEp_        = electron.ecalDriven();
-    trackerDrivenSeedEp_ = electron.trackerDrivenSeed();
-    classificationEp_    = int(electron.classification());
-    isEBEp_              = electron.isEB();
+    trkMomentum_e          = electron.trackMomentumAtVtx().R();
+    trkMomentumError_e     = electron.trackMomentumError();
+    trkMomentumRelError_e  = electron.trackMomentumError() / electron.trackMomentumAtVtx().R();
+    ecalDriven_e           = electron.ecalDriven();
+    trackerDriven_e    = electron.trackerDrivenSeed();
+    classification_e       = int(electron.classification());
 
     // Write class variables to the output EpTree_
     electronTree_->Fill();
 
-    // Write E-p variables to the E-p tree
-    //EpTree_->Fill();
-
     }
-
-
-
 
 
 bool SimpleNtuplizer::matchElectronToGenParticle(
@@ -261,7 +236,7 @@ bool SimpleNtuplizer::matchElectronToGenParticle(
     // =====================================
     // Loop over genParticles
 
-    for (const reco::GenParticle &genParticle : *genParticles) {
+    for (const reco::GenParticle &genParticle : *genParticles_) {
 
         // Continue if pdgId is not 22 or status is not 1
         if(!( abs(genParticle.pdgId())==11 && genParticle.status()==1 ))
@@ -299,16 +274,16 @@ bool SimpleNtuplizer::matchElectronToGenParticle(
     // =====================================
     // Fill necessary branches
 
-    match_dR     = minDr;
-    match_dE     = minDe;
-    match_dRdE   = minDeDr;
-    gen_pt     = matched_genParticle->pt();
-    gen_phi    = matched_genParticle->phi();
-    gen_eta    = matched_genParticle->eta();
-    gen_M      = matched_genParticle->mass();
-    gen_E      = matched_genParticle->energy();
-    gen_pdgId  = matched_genParticle->pdgId();
-    gen_status = matched_genParticle->status();
+    genMatchdR_e    = minDr;
+    genMatchdE_e    = minDe;
+    genMatchdRdE_e  = minDeDr;
+    genPt_e         = matched_genParticle->pt();
+    genPhi_e        = matched_genParticle->phi();
+    genEta_e        = matched_genParticle->eta();
+    genMass_e       = matched_genParticle->mass();
+    genEnergy_e     = matched_genParticle->energy();
+    genPdgId_e      = matched_genParticle->pdgId();
+    genStatus_e     = matched_genParticle->status();
 
     // Return successful match value (should be true)
     return successful_match;

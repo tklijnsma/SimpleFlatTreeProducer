@@ -81,8 +81,6 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
         virtual void endJob() override;
 
-        // Central event counter (specific to this output tree)
-        int eventNumber;
 
         // =====================================
         // Setting tokens
@@ -93,152 +91,357 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         edm::EDGetTokenT<reco::GenParticleCollection> genParticleToken_;
         edm::EDGetTokenT<double>                      rhoToken_; 
 
-        edm::Handle<reco::GenParticleCollection> genParticles;
+        edm::Handle<reco::GenParticleCollection> genParticles_;
 
 
         // =====================================
         // Event variables
 
         TTree *eventTree_;
+        TTree *electronTree_;
+        TTree *photonTree_;
 
-        Int_t nPV_;         // Number of reconsrtucted primary vertices
+        // Central event counter (specific to this output tree)
+        int NtupID_ = 0;
+
+        Int_t eventNumber_;
+        Int_t luminosityBlock_;
+        Int_t run_;
+
+        Int_t isMatched_ = 1; // Always 1 but it's there so old regression .root files can be ran
+
+        Int_t nPV_;         // Number of reconstructed primary vertices
         Int_t nElectrons_;
         Int_t nElectronsMatched_;
         Int_t nPhotons_;
         Int_t nPhotonsMatched_;
 
 
-        // =====================================
-        // Electron tree variables
+        //######################################
+        //# Variable list for both electrons and photons
+        //######################################
 
-        TTree *electronTree_;
+        /*
+        // Definitive list of variables
+        // Copy this for the photon and electron tree
 
-        // Basic electron variables
+        // -----------------------------
+        // Variables used in training
+
         Float_t pt_;
-        Float_t rawEnergySC_;
-        Float_t etaSC_;
-        Float_t phiSC_;
-        Float_t etaWidthSC_;
-        Float_t phiWidthSC_;
-        Float_t r9SS_;
-        Float_t seedEnergySS_;
-        Float_t eMaxSS_;
-        Float_t e2ndSS_;
-        Float_t eHorizontalSS_;
-        Float_t eVerticalSS_;
-        Float_t sigmaIetaIetaSS_;
-        Float_t sigmaIetaIphiSS_;
-        Float_t sigmaIphiIphiSS_;
-        Int_t numberOfClustersSC_;
-        Int_t isEB_;
+        Float_t rawEnergy_;
+        Float_t eta_;
+        Float_t phi_;
+        Float_t etaWidth_;
+        Float_t phiWidth_;
+        Float_t r9_;
+        Float_t seedEnergy_;
+        Float_t eMax_;
+        Float_t e2nd_;
+        Float_t eHorizontal_;
+        Float_t eVertical_;
+        Float_t sigmaIetaIeta_;
+        Float_t sigmaIetaIphi_;
+        Float_t sigmaIphiIphi_;
+        Int_t   numberOfClusters_;
+        Int_t   isEB_;
         Float_t preshowerEnergy_;
 
-        Float_t trkMomentum;
-        Float_t trkMomentumError;
+        // For photon (except eMax and e2nd, which are also in electronTree)
+        Float_t hadronicOverEm_;
+        Float_t rhoValue_;
+        Float_t delEtaSeed_;
+        Float_t delPhiSeed_;
+        Float_t e5x5_;
+        Float_t e3x3_;
+        Float_t eMax_;
+        Float_t e2nd_;
+        Float_t eTop_;
+        Float_t eBottom_;
+        Float_t eLeft_;
+        Float_t eRight_;
+        Float_t e2x5Max_;
+        Float_t e2x5Left_;
+        Float_t e2x5Right_;
+        Float_t e2x5Top_;
+        Float_t e2x5Bottom_;
 
-        // Currently either 0 or 1 entry, depending on whether event is EB or EE
-        std::vector<Float_t> iEtaCoordinate_;
-        std::vector<Float_t> iPhiCoordinate_;
-        std::vector<Float_t> cryEtaCoordinate_;
-        std::vector<Float_t> cryPhiCoordinate_;
+        // -----------------------------
+        // Coordinate variables
 
-        std::vector<Float_t> iXCoordinate_;
-        std::vector<Float_t> iYCoordinate_;
-        std::vector<Float_t> cryXCoordinate_;
-        std::vector<Float_t> cryYCoordinate_;
+        // EB
+        std::vector<Int_t>   iEtaCoordinate_;
+        std::vector<Int_t>   iPhiCoordinate_;
+        std::vector<Int_t>   cryEtaCoordinate_;
+        std::vector<Int_t>   cryPhiCoordinate_;
+        // EE
+        std::vector<Int_t>   iXCoordinate_;
+        std::vector<Int_t>   iYCoordinate_;
+        std::vector<Int_t>   cryXCoordinate_;
+        std::vector<Int_t>   cryYCoordinate_;
 
+        // Additional coordinate variables for photon
+        std::vector<Int_t>   iEtaMod5_;
+        std::vector<Int_t>   iPhiMod2_;
+        std::vector<Int_t>   iEtaMod20_;
+        std::vector<Int_t>   iPhiMod20_;
+        std::vector<Float_t> preshowerEnergyPlane1_;
+        std::vector<Float_t> preshowerEnergyPlane2_;
 
+        // -----------------------------
         // Cluster variables
 
-        // These contain either 0 or 1 entries
-        // std::vector<Float_t> MaxDRclusterDR_;
-        // std::vector<Float_t> MaxDRclusterDPhi_;
-        // std::vector<Float_t> MaxDRclusterDEta_;
-        // std::vector<Float_t> MaxDRclusterRawEnergy_;
-
-        // Now always contains one entry, but this can be 999.!
-        Float_t MaxDRclusterDR;
-        Float_t MaxDRclusterDPhi;
-        Float_t MaxDRclusterDEta;
-        Float_t MaxDRclusterRawEnergy;
+        Float_t MaxDRclusterDR_;
+        Float_t MaxDRclusterDPhi_;
+        Float_t MaxDRclusterDEta_;
+        Float_t MaxDRclusterRawEnergy_;
 
         std::vector<Float_t> clusterRawEnergy_;
         std::vector<Float_t> clusterDPhiToSeed_;
         std::vector<Float_t> clusterDEtaToSeed_;
 
+        // Only for electron
+        Int_t   IsEcalEnergyCorrected_;
+        Float_t CorrectedEcalEnergy_;
+        Float_t CorrectedEcalEnergyError_;
+
+        // -----------------------------
+        // Ep variables (only for electron)
+
+        Float_t trkMomentum_;
+        Float_t trkMomentumError_;
+        Float_t trkMomentumRelError_;
+        Float_t ecalDriven_;
+        Float_t trackerDriven_;
+        Float_t classification_;
+
+        Float_t genMatchdR_;
+        Float_t genMatchdE_;
+        Float_t genMatchdRdE_;
+        Float_t genPt_;
+        Float_t genPhi_;
+        Float_t genEta_;
+        Float_t genMass_;
+        Float_t genEnergy_;
+        Int_t   genPdgId_;
+        Int_t   genStatus_;
+        */
+
 
         // =====================================
-        // E-p tree variables
+        // Electron tree variables
 
-        TTree *EpTree_;
+        // -----------------------------
+        // Variables used in training
 
-        Float_t totEnergyEp_;
-        Float_t epEp_;
-        Float_t epErrorEp_;
-        Float_t epRelErrorEp_;
-        Float_t ecalDrivenEp_;
-        Float_t trackerDrivenSeedEp_;
-        Int_t classificationEp_;
-        Int_t isEBEp_;
+        Float_t pt_e;
+        Float_t rawEnergy_e;
+        Float_t eta_e;
+        Float_t phi_e;
+        Float_t etaWidth_e;
+        Float_t phiWidth_e;
+        Float_t r9_e;
+        Float_t seedEnergy_e;
+        Float_t eHorizontal_e;
+        Float_t eVertical_e;
+        Float_t sigmaIetaIeta_e;
+        Float_t sigmaIetaIphi_e;
+        Float_t sigmaIphiIphi_e;
+        Int_t   numberOfClusters_e;
+        Int_t   isEB_e;
+        Float_t preshowerEnergy_e;
+
+        // For photon (except eMax and e2nd, which are also in electronTree)
+        Float_t hadronicOverEm_e;
+        Float_t rhoValue_e;
+        Float_t delEtaSeed_e;
+        Float_t delPhiSeed_e;
+        Float_t e5x5_e;
+        Float_t e3x3_e;
+        Float_t eMax_e;
+        Float_t e2nd_e;
+        Float_t eTop_e;
+        Float_t eBottom_e;
+        Float_t eLeft_e;
+        Float_t eRight_e;
+        Float_t e2x5Max_e;
+        Float_t e2x5Left_e;
+        Float_t e2x5Right_e;
+        Float_t e2x5Top_e;
+        Float_t e2x5Bottom_e;
+
+        // -----------------------------
+        // Coordinate variables
+
+        // EB
+        std::vector<Int_t>   iEtaCoordinate_e;
+        std::vector<Int_t>   iPhiCoordinate_e;
+        std::vector<Int_t>   cryEtaCoordinate_e;
+        std::vector<Int_t>   cryPhiCoordinate_e;
+        // EE
+        std::vector<Int_t>   iXCoordinate_e;
+        std::vector<Int_t>   iYCoordinate_e;
+        std::vector<Int_t>   cryXCoordinate_e;
+        std::vector<Int_t>   cryYCoordinate_e;
+
+        // Additional coordinate variables for photon
+        std::vector<Int_t>   iEtaMod5_e;
+        std::vector<Int_t>   iPhiMod2_e;
+        std::vector<Int_t>   iEtaMod20_e;
+        std::vector<Int_t>   iPhiMod20_e;
+        std::vector<Float_t> preshowerEnergyPlane1_e;
+        std::vector<Float_t> preshowerEnergyPlane2_e;
+
+        // -----------------------------
+        // Cluster variables
+
+        Float_t MaxDRclusterDR_e;
+        Float_t MaxDRclusterDPhi_e;
+        Float_t MaxDRclusterDEta_e;
+        Float_t MaxDRclusterRawEnergy_e;
+
+        std::vector<Float_t> clusterRawEnergy_e;
+        std::vector<Float_t> clusterDPhiToSeed_e;
+        std::vector<Float_t> clusterDEtaToSeed_e;
+
+        // Only for electron
+        Int_t   IsEcalEnergyCorrected_e;
+        Float_t CorrectedEcalEnergy_e;
+        Float_t CorrectedEcalEnergyError_e;
+
+        // -----------------------------
+        // Ep variables (only for electron)
+
+        Float_t trkMomentum_e;
+        Float_t trkMomentumError_e;
+        Float_t trkMomentumRelError_e;
+        Float_t ecalDriven_e;
+        Float_t trackerDriven_e;
+        Float_t classification_e;
+
+        Float_t genMatchdR_e;
+        Float_t genMatchdE_e;
+        Float_t genMatchdRdE_e;
+        Float_t genPt_e;
+        Float_t genPhi_e;
+        Float_t genEta_e;
+        Float_t genMass_e;
+        Float_t genEnergy_e;
+        Int_t   genPdgId_e;
+        Int_t   genStatus_e;
 
 
         // =====================================
         // Photon tree variables
 
-        TTree *photonTree_;
+        // Last minute addition (add same type of objects to electrons tree too)
+        Float_t scEcalEnergy_p      ;
+        Float_t phoEcalEnergy_p     ;
+        Float_t regression1Energy_p ;
+        Float_t regression2Energy_p ;
+        Float_t scEcalEnergyError_p      ;
+        Float_t phoEcalEnergyError_p     ;
+        Float_t regression1EnergyError_p ;
+        Float_t regression2EnergyError_p ;
 
-        Float_t ph_rawEnergy_           ;
-        Float_t ph_r9_                  ;
-        Float_t ph_etaWidth_            ;
-        Float_t ph_phiWidth_            ;
-        Int_t   ph_numberOfClusters_    ;
-        Float_t ph_hadronicOverEm_      ;
-        Float_t ph_rhoValue_            ;
-        Float_t ph_delEtaSeed_          ;
-        Float_t ph_delPhiSeed_          ;
-        Float_t ph_seedEnergy_          ;
-        Float_t ph_3x3_5x5_             ;
-        Float_t ph_sigmaIetaIeta_       ;
-        Float_t ph_sigmaIphiIphi_       ;
-        Float_t ph_sigmaIetaIphi_       ;
-        Float_t ph_Emax_5x5_            ;
-        Float_t ph_e2nd_5x5_            ;
-        Float_t ph_eTop_5x5_            ;
-        Float_t ph_eBottom_5x5_         ;
-        Float_t ph_eLeft_5x5_           ;
-        Float_t ph_eRight_5x5_          ;
-        Float_t ph_e2x5Max_5x5_         ;
-        Float_t ph_e2x5Left_5x5_        ;
-        Float_t ph_e2x5Right_5x5_       ;
-        Float_t ph_e2x5Top_5x5_         ;
-        Float_t ph_e2x5Bottom_5x5_      ;
+        // -----------------------------
+        // Variables used in training
 
-        Int_t ph_isEB_;
-        std::vector<Float_t> ph_5x5_seedEnergy_         ;
-        std::vector<Int_t>   ph_iEtaCoordinate_         ;
-        std::vector<Int_t>   ph_iPhiCoordinate_         ;
-        std::vector<Int_t>   ph_iEtaMod5_               ;
-        std::vector<Int_t>   ph_iPhiMod2_               ;
-        std::vector<Int_t>   ph_iEtaMod20_              ;
-        std::vector<Int_t>   ph_iPhiMod20_              ;
-        std::vector<Float_t> ph_preShowerE_rawEnergy_   ;
-        std::vector<Float_t> ph_preShowerEp1_rawEnergy_ ;
-        std::vector<Float_t> ph_preShowerEp2_rawEnergy_ ;
-        std::vector<Int_t>   ph_iXCoordinate_           ;
-        std::vector<Int_t>   ph_iYCoordinate_           ;
+        Float_t pt_p;
+        Float_t rawEnergy_p;
+        Float_t eta_p;
+        Float_t phi_p;
+        Float_t etaWidth_p;
+        Float_t phiWidth_p;
+        Float_t r9_p;
+        Float_t seedEnergy_p;
+        Float_t eHorizontal_p;
+        Float_t eVertical_p;
+        Float_t sigmaIetaIeta_p;
+        Float_t sigmaIetaIphi_p;
+        Float_t sigmaIphiIphi_p;
+        Int_t   numberOfClusters_p;
+        Int_t   isEB_p;
+        Float_t preshowerEnergy_p;
 
-        // Matching variables
-        Float_t match_dR;
-        Float_t match_dE;
-        Float_t match_dRdE;
+        // For photon (except eMax and e2nd, which are also in electronTree)
+        Float_t hadronicOverEm_p;
+        Float_t rhoValue_p;
+        Float_t delEtaSeed_p;
+        Float_t delPhiSeed_p;
+        Float_t e5x5_p;
+        Float_t e3x3_p;
+        Float_t eMax_p;
+        Float_t e2nd_p;
+        Float_t eTop_p;
+        Float_t eBottom_p;
+        Float_t eLeft_p;
+        Float_t eRight_p;
+        Float_t e2x5Max_p;
+        Float_t e2x5Left_p;
+        Float_t e2x5Right_p;
+        Float_t e2x5Top_p;
+        Float_t e2x5Bottom_p;
 
-        Float_t gen_pt;
-        Float_t gen_phi;
-        Float_t gen_eta;
-        Float_t gen_M;
-        Float_t gen_E;
-        Float_t gen_pdgId;
-        Float_t gen_status;
+        // -----------------------------
+        // Coordinate variables
+
+        // EB
+        std::vector<Int_t>   iEtaCoordinate_p;
+        std::vector<Int_t>   iPhiCoordinate_p;
+        std::vector<Int_t>   cryEtaCoordinate_p;
+        std::vector<Int_t>   cryPhiCoordinate_p;
+        // EE
+        std::vector<Int_t>   iXCoordinate_p;
+        std::vector<Int_t>   iYCoordinate_p;
+        std::vector<Int_t>   cryXCoordinate_p;
+        std::vector<Int_t>   cryYCoordinate_p;
+
+        // Additional coordinate variables for photon
+        std::vector<Int_t>   iEtaMod5_p;
+        std::vector<Int_t>   iPhiMod2_p;
+        std::vector<Int_t>   iEtaMod20_p;
+        std::vector<Int_t>   iPhiMod20_p;
+        std::vector<Float_t> preshowerEnergyPlane1_p;
+        std::vector<Float_t> preshowerEnergyPlane2_p;
+
+        // -----------------------------
+        // Cluster variables
+
+        Float_t MaxDRclusterDR_p;
+        Float_t MaxDRclusterDPhi_p;
+        Float_t MaxDRclusterDEta_p;
+        Float_t MaxDRclusterRawEnergy_p;
+
+        std::vector<Float_t> clusterRawEnergy_p;
+        std::vector<Float_t> clusterDPhiToSeed_p;
+        std::vector<Float_t> clusterDEtaToSeed_p;
+
+        // Only for electron
+        Int_t   IsEcalEnergyCorrected_p;
+        Float_t CorrectedEcalEnergy_p;
+        Float_t CorrectedEcalEnergyError_p;
+
+        // -----------------------------
+        // Ep variables (only for electron)
+
+        Float_t trkMomentum_p;
+        Float_t trkMomentumError_p;
+        Float_t trkMomentumRelError_p;
+        Float_t ecalDriven_p;
+        Float_t trackerDriven_p;
+        Float_t classification_p;
+
+        Float_t genMatchdR_p;
+        Float_t genMatchdE_p;
+        Float_t genMatchdRdE_p;
+        Float_t genPt_p;
+        Float_t genPhi_p;
+        Float_t genEta_p;
+        Float_t genMass_p;
+        Float_t genEnergy_p;
+        Int_t   genPdgId_p;
+        Int_t   genStatus_p;
 
     };
 

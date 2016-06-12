@@ -21,12 +21,12 @@ void SimpleNtuplizer::setPhotonVariables(
 
 
     // =====================================
-    // Fill other variables
+    // Fill main variables
 
     // Set convenience variables
     const reco::SuperClusterRef& superCluster = photon.superCluster();
     const edm::Ptr<reco::CaloCluster>& seedCluster = superCluster->seed();
-    const int numberOfClusters =  superCluster->clusters().size();
+    int numberOfClusters;
 
     // T: Not sure if this should be done!!
     // const bool missing_clusters = !superCluster->clusters()[numberOfClusters-1].isAvailable();
@@ -40,81 +40,186 @@ void SimpleNtuplizer::setPhotonVariables(
     iEvent.getByToken(rhoToken_,rhoH);
     Float_t rho = *rhoH;
 
-    // Fill in variables that will be written to the tree
-    ph_rawEnergy_         = rawEnergy;
-    ph_r9_                = photon.r9();
-    ph_etaWidth_          = superCluster->etaWidth();
-    ph_phiWidth_          = superCluster->phiWidth(); 
-    ph_numberOfClusters_  = std::max(0,numberOfClusters - 1);
-    ph_hadronicOverEm_    = photon.hadronicOverEm();
-    ph_rhoValue_          = rho;
-    ph_delEtaSeed_        = seedCluster->eta()-superCluster->position().Eta();
-    ph_delPhiSeed_        = reco::deltaPhi(seedCluster->phi(),superCluster->position().Phi());
-    ph_seedEnergy_        = seedCluster->energy()/rawEnergy;
-    ph_3x3_5x5_           = showerShape.e3x3 / showerShape.e5x5;
-    ph_sigmaIetaIeta_     = showerShape.sigmaIetaIeta;  
-    ph_sigmaIphiIphi_     = showerShape.sigmaIphiIphi;
-    ph_sigmaIetaIphi_     = showerShape.sigmaIetaIphi / (showerShape.sigmaIphiIphi*showerShape.sigmaIetaIeta);
-    ph_Emax_5x5_          = showerShape.maxEnergyXtal / showerShape.e5x5;
-    ph_e2nd_5x5_          = showerShape.e2nd       / showerShape.e5x5;
-    ph_eTop_5x5_          = showerShape.eTop       / showerShape.e5x5;
-    ph_eBottom_5x5_       = showerShape.eBottom    / showerShape.e5x5;
-    ph_eLeft_5x5_         = showerShape.eLeft      / showerShape.e5x5;
-    ph_eRight_5x5_        = showerShape.eRight     / showerShape.e5x5;  
-    ph_e2x5Max_5x5_       = showerShape.e2x5Max    / showerShape.e5x5;
-    ph_e2x5Left_5x5_      = showerShape.e2x5Left   / showerShape.e5x5;
-    ph_e2x5Right_5x5_     = showerShape.e2x5Right  / showerShape.e5x5;
-    ph_e2x5Top_5x5_       = showerShape.e2x5Top    / showerShape.e5x5;
-    ph_e2x5Bottom_5x5_    = showerShape.e2x5Bottom / showerShape.e5x5;
+
+    // Write photon variables to class variables
+    pt_p              = photon.pt() ;
+    rawEnergy_p     = rawEnergy ;
+    eta_p           = superCluster->eta() ;
+    phi_p           = superCluster->phi() ;
+    etaWidth_p      = superCluster->etaWidth() ;
+    phiWidth_p      = superCluster->phiWidth() ;
+    r9_p            = photon.r9() ;
+    seedEnergy_p    = superCluster->seed()->energy() ;
+
+    // Vars NOT in electronTree:
+    hadronicOverEm_p   = photon.hadronicOverEm();
+    rhoValue_p         = rho;
+    delEtaSeed_p       = seedCluster->eta()-superCluster->position().Eta();
+    delPhiSeed_p       = reco::deltaPhi(seedCluster->phi(),superCluster->position().Phi());
+    e5x5_p             = showerShape.e5x5       ;
+    e3x3_p             = showerShape.e3x3       ;
+    eMax_p             = showerShape.maxEnergyXtal ; // <-- Also in electronTree
+    e2nd_p             = showerShape.e2nd       ; // <-- Also in electronTree
+    eTop_p             = showerShape.eTop       ;
+    eBottom_p          = showerShape.eBottom    ;
+    eLeft_p            = showerShape.eLeft      ;
+    eRight_p           = showerShape.eRight     ;  
+    e2x5Max_p          = showerShape.e2x5Max    ;
+    e2x5Left_p         = showerShape.e2x5Left   ;
+    e2x5Right_p        = showerShape.e2x5Right  ;
+    e2x5Top_p          = showerShape.e2x5Top    ;
+    e2x5Bottom_p       = showerShape.e2x5Bottom ;
+
+    eHorizontal_p   = showerShape.eLeft + showerShape.eRight != 0.f  
+                                 ? ( showerShape.eLeft - showerShape.eRight ) /
+                                   ( showerShape.eLeft + showerShape.eRight ) : 0.f  ;
+    eVertical_p     = showerShape.eTop + showerShape.eBottom != 0.f
+                                 ? ( showerShape.eTop - showerShape.eBottom ) /
+                                   ( showerShape.eTop + showerShape.eBottom ) : 0.f  ;
+    sigmaIetaIeta_p = showerShape.sigmaIetaIeta ;
+    sigmaIetaIphi_p = showerShape.sigmaIetaIphi ;
+    sigmaIphiIphi_p = showerShape.sigmaIphiIphi ;
+    preshowerEnergy_p = superCluster->preshowerEnergy() ;        
+
+    numberOfClusters   = std::max( 0, int (superCluster->clusters().size()) );
+    numberOfClusters_p = numberOfClusters ;
+    isEB_p              = photon.isEB() ;
+
+
+    // Which one is the current 74 regression energy?
+    scEcalEnergy_p            = photon.energyCorrections().scEcalEnergy ;
+    scEcalEnergyError_p       = photon.energyCorrections().scEcalEnergyError ;
+    phoEcalEnergy_p           = photon.energyCorrections().phoEcalEnergy ;
+    phoEcalEnergyError_p      = photon.energyCorrections().phoEcalEnergyError ;
+    regression1Energy_p       = photon.energyCorrections().regression1Energy ;
+    regression1EnergyError_p  = photon.energyCorrections().regression1EnergyError ;
+    regression2Energy_p       = photon.energyCorrections().regression2Energy ;
+    regression2EnergyError_p  = photon.energyCorrections().regression2EnergyError ;
+
+    // std::cout << "Some vars for the photon:"                      << std::endl;
+    // std::cout << "rawEnergy_p         = " <<  rawEnergy_p         << std::endl ;    
+    // std::cout << "scEcalEnergy_p      = " <<  scEcalEnergy_p      << std::endl ;
+    // std::cout << "phoEcalEnergy_p     = " <<  phoEcalEnergy_p     << std::endl ;
+    // std::cout << "regression1Energy_p = " <<  regression1Energy_p << std::endl ;
+    // std::cout << "regression2Energy_p = " <<  regression2Energy_p << std::endl ;
+
+    // std::cout << "scEcalEnergyError_p      = " <<  scEcalEnergyError_p      << std::endl ;
+    // std::cout << "phoEcalEnergyError_p     = " <<  phoEcalEnergyError_p     << std::endl ;
+    // std::cout << "regression1EnergyError_p = " <<  regression1EnergyError_p << std::endl ;
+    // std::cout << "regression2EnergyError_p = " <<  regression2EnergyError_p << std::endl ;
+
+
+
+    // =====================================
+    // Cluster variables
+
+    // Clear the std::vectors from the previous electron
+    clusterRawEnergy_p.clear();
+    clusterDPhiToSeed_p.clear();
+    clusterDEtaToSeed_p.clear();
+
+    // Fill with zeroes for the needed amount of clusters
+    //   make sure at least indices 0, 1 and 2 are filled
+    clusterRawEnergy_p.resize(std::max(3, numberOfClusters), 0);
+    clusterDPhiToSeed_p.resize(std::max(3, numberOfClusters), 0);
+    clusterDEtaToSeed_p.resize(std::max(3, numberOfClusters), 0);
+
+    // These have either 0 or 1 entry
+    // MaxDRclusterDR_.clear();
+    // MaxDRclusterDPhi_.clear();
+    // MaxDRclusterDEta_.clear();
+    // MaxDRclusterRawEnergy_.clear();
+
+    // Default values
+    MaxDRclusterDR_p        = 0.; // Changed from 999.; Make sure it's considered
+    MaxDRclusterDPhi_p      = 0.; // Changed from 999.; Make sure it's considered
+    MaxDRclusterDEta_p      = 0.; // Changed from 999.; Make sure it's considered
+    MaxDRclusterRawEnergy_p = 0.;
+
+    // compared throughout loop
+    float maxDR             = 0.;
+
+    // Define cluster
+    edm::Ptr<reco::CaloCluster> cluster;
+
+    // Loop over all clusters that aren't the seed  
+    size_t i_cluster = 0;
+    for( auto pcluster = superCluster->clustersBegin(); pcluster != superCluster->clustersEnd(); ++pcluster ) {
+        
+        // Dereference to get the actual object
+        cluster = *pcluster;
+
+        // Continue if this is the seed
+        if( cluster == superCluster->seed() ) continue;
+
+        // Set basic cluster quantities in vectors
+        // clusterRawEnergy_  .push_back( cluster->energy() / rawEnergy );
+        // clusterDPhiToSeed_ .push_back( reco::deltaPhi( cluster->phi(), superCluster->seed()->phi() ) );
+        // clusterDEtaToSeed_ .push_back( cluster->eta() - superCluster->seed()->eta() );
+        clusterRawEnergy_p[i_cluster]  = cluster->energy() ;
+        clusterDPhiToSeed_p[i_cluster] = reco::deltaPhi( cluster->phi(), superCluster->seed()->phi() );
+        clusterDEtaToSeed_p[i_cluster] = cluster->eta() - superCluster->seed()->eta();
+
+        // Find the cluster that has maximum delR to the seed
+        const auto deltaR = reco::deltaR( *cluster, *superCluster->seed() );
+        if( deltaR > maxDR) {
+            maxDR = deltaR;
+            MaxDRclusterDR_p        = maxDR;
+            MaxDRclusterDPhi_p      = clusterDPhiToSeed_p[i_cluster];
+            MaxDRclusterDEta_p      = clusterDEtaToSeed_p[i_cluster];
+            MaxDRclusterRawEnergy_p = clusterRawEnergy_p[i_cluster];
+            }
+
+        i_cluster++;
+
+        // If cutting off after a certain amount of clusters, set this limit here
+        if(i_cluster == 3) break;
+        }
+
+
+    // =====================================
+    // Coordinate variables
 
     // Clear the std::vectors from last photon
-    ph_5x5_seedEnergy_         .clear();
-    ph_iEtaCoordinate_         .clear();
-    ph_iPhiCoordinate_         .clear();
-    ph_iEtaMod5_               .clear();
-    ph_iPhiMod2_               .clear();
-    ph_iEtaMod20_              .clear();
-    ph_iPhiMod20_              .clear();
-    ph_preShowerE_rawEnergy_   .clear();
-    ph_preShowerEp1_rawEnergy_ .clear();
-    ph_preShowerEp2_rawEnergy_ .clear();
-    ph_iXCoordinate_           .clear();
-    ph_iYCoordinate_           .clear();
+    // EB
+    iEtaCoordinate_p         .clear() ;
+    iPhiCoordinate_p         .clear() ;
+    iEtaMod5_p               .clear() ;
+    iPhiMod2_p               .clear() ;
+    iEtaMod20_p              .clear() ;
+    iPhiMod20_p              .clear() ;
+    // EE
+    preshowerEnergyPlane1_p  .clear() ;
+    preshowerEnergyPlane2_p  .clear() ;
+    iXCoordinate_p           .clear() ;
+    iYCoordinate_p           .clear() ;
 
-    // Coordinate variables
-    ph_isEB_ = photon.isEB();
     if ( photon.isEB() ) {
         
-        ph_5x5_seedEnergy_ .push_back( photon.e5x5() / seedCluster->energy() ); // Why does photon.e5x5() work here? Up it's ss.e5x5
-
         EBDetId ebseedid( seedCluster->seed());
         
         int ieta = ebseedid.ieta();
         int iphi = ebseedid.iphi();
         int signieta = ieta > 0 ? +1 : -1; /// this is 1*abs(ieta)/ieta in original training
 
-        ph_iEtaCoordinate_ .push_back( ieta );
-        ph_iPhiCoordinate_ .push_back( iphi );
-        ph_iEtaMod5_       .push_back( (ieta-signieta)%5 );
-        ph_iPhiMod2_       .push_back( (iphi-1)%2 );
-        ph_iEtaMod20_      .push_back( abs(ieta)<=25 ? ieta-signieta : (ieta - 26*signieta) % 20  );
-        ph_iPhiMod20_      .push_back( (iphi-1)%20 );
+        iEtaCoordinate_p .push_back( ieta );
+        iPhiCoordinate_p .push_back( iphi );
+        iEtaMod5_p       .push_back( (ieta-signieta)%5 );
+        iPhiMod2_p       .push_back( (iphi-1)%2 );
+        iEtaMod20_p      .push_back( abs(ieta)<=25 ? ieta-signieta : (ieta - 26*signieta) % 20  );
+        iPhiMod20_p      .push_back( (iphi-1)%20 );
         }
     
     else {
         EEDetId eeseedid( seedCluster->seed());
-        ph_preShowerE_rawEnergy_   .push_back( superCluster->preshowerEnergy() / rawEnergy );
-        ph_preShowerEp1_rawEnergy_ .push_back( superCluster->preshowerEnergyPlane1() / rawEnergy );
-        ph_preShowerEp2_rawEnergy_ .push_back( superCluster->preshowerEnergyPlane2() / rawEnergy );
-        ph_iXCoordinate_           .push_back( eeseedid.ix() );
-        ph_iYCoordinate_           .push_back( eeseedid.iy() );
+        preshowerEnergyPlane1_p  .push_back( superCluster->preshowerEnergyPlane1() / rawEnergy );
+        preshowerEnergyPlane2_p  .push_back( superCluster->preshowerEnergyPlane2() / rawEnergy );
+        iXCoordinate_p           .push_back( eeseedid.ix() );
+        iYCoordinate_p           .push_back( eeseedid.iy() );
         }
-
 
     // Write class variables to the output tree
     photonTree_->Fill();
-
-    // TODO: What to do with the Ep variables?
 
     }
 
@@ -171,7 +276,7 @@ bool SimpleNtuplizer::matchPhotonToGenParticle(
     // =====================================
     // Loop over genParticles
 
-    for (const reco::GenParticle &genParticle : *genParticles) {
+    for (const reco::GenParticle &genParticle : *genParticles_) {
 
         // Continue if pdgId is not 22 or status is not 1
         if(!( abs(genParticle.pdgId())==22 && genParticle.status()==1 ))
@@ -209,16 +314,16 @@ bool SimpleNtuplizer::matchPhotonToGenParticle(
     // =====================================
     // Fill necessary branches
 
-    match_dR     = minDr;
-    match_dE     = minDe;
-    match_dRdE   = minDeDr;
-    gen_pt       = matched_genParticle->pt();
-    gen_phi      = matched_genParticle->phi();
-    gen_eta      = matched_genParticle->eta();
-    gen_M        = matched_genParticle->mass();
-    gen_E        = matched_genParticle->energy();
-    gen_pdgId    = matched_genParticle->pdgId();
-    gen_status   = matched_genParticle->status();
+    genMatchdR_p   = minDr;
+    genMatchdE_p   = minDe;
+    genMatchdRdE_p = minDeDr;
+    genPt_p        = matched_genParticle->pt();
+    genPhi_p       = matched_genParticle->phi();
+    genEta_p       = matched_genParticle->eta();
+    genMass_p      = matched_genParticle->mass();
+    genEnergy_p    = matched_genParticle->energy();
+    genPdgId_p     = matched_genParticle->pdgId();
+    genStatus_p    = matched_genParticle->status();
 
     // Return successful match value (should be true)
     return successful_match;
