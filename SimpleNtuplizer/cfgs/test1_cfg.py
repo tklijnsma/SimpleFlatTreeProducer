@@ -35,8 +35,8 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc'   , '')
 #For the IC:
 #process.GlobalTag.globaltag = '80X_mcRun2_asymptotic_2016_IdealEcalIC_v0'
 
-# process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(5) )
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(15) )
+# process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 readFiles = cms.untracked.vstring()
 secFiles = cms.untracked.vstring() 

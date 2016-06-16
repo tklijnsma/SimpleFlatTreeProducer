@@ -108,6 +108,9 @@ void SimpleNtuplizer::setPhotonVariables(
     // std::cout << "regression1EnergyError_p = " <<  regression1EnergyError_p << std::endl ;
     // std::cout << "regression2EnergyError_p = " <<  regression2EnergyError_p << std::endl ;
 
+    // Double_t the_energy = photon.energy();
+    // std::cout << "photon.energy()     = " <<  the_energy << std::endl << std::endl;
+    
 
 
     // =====================================
