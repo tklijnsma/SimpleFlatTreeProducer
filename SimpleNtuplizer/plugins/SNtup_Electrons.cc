@@ -74,6 +74,45 @@ void SimpleNtuplizer::setElectronVariables(
     CorrectedEcalEnergy_e      = electron.corrections().correctedEcalEnergy;
     CorrectedEcalEnergyError_e = electron.corrections().correctedEcalEnergyError;
 
+
+    // Saturation variables
+
+    edm::Ptr<reco::CaloCluster> seedCluster = superCluster->seed();
+
+    DetId seedId = seedCluster->seed();
+
+    std::vector< std::pair<DetId, float> > hitsAndFractions = seedCluster->hitsAndFractions();
+
+    DetId hitId;
+    Double_t fraction;
+    int rawId;
+
+    for (const std::pair<DetId, float> hitFractionPair : hitsAndFractions) {
+
+        hitId    = std::get<0>(hitFractionPair);
+        fraction = std::get<1>(hitFractionPair);
+
+        rawId = hitId.rawId();
+
+        cout << "rawId: " << rawId << ",  fraction: " << fraction;
+
+        if ( hitId == seedId ) cout << "   <--- Seed cluster " ;
+        cout << endl;
+
+
+        }
+
+
+
+
+    cout << "Testing seed calocluster" << endl;
+    // cout << seed->seed() << endl;
+    cout << endl;
+
+
+
+
+
     // =====================================
     // Cluster variables (subs of the superCluster)
 
@@ -181,7 +220,7 @@ void SimpleNtuplizer::setElectronVariables(
     trkMomentumError_e     = electron.trackMomentumError();
     trkMomentumRelError_e  = electron.trackMomentumError() / electron.trackMomentumAtVtx().R();
     ecalDriven_e           = electron.ecalDriven();
-    trackerDriven_e    = electron.trackerDrivenSeed();
+    trackerDriven_e        = electron.trackerDrivenSeed();
     classification_e       = int(electron.classification());
 
     // Write class variables to the output EpTree_

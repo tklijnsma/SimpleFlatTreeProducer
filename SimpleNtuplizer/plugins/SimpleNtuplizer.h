@@ -55,6 +55,9 @@
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/HLTReco/interface/TriggerEvent.h"
 
+// Needed for saturation variables
+#include "DataFormats/CaloRecHit/interface/CaloCluster.h"
+
 //######################################
 //# Class declaration
 //######################################
@@ -96,11 +99,15 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         edm::EDGetTokenT<reco::PhotonCollection>      photonToken_;
         edm::EDGetTokenT<reco::GenParticleCollection> genParticleToken_;
         edm::EDGetTokenT<double>                      rhoToken_; 
+
 	edm::EDGetTokenT<edm::ValueMap<bool> >        electronTightIdMapToken_;
 	edm::EDGetTokenT<edm::TriggerResults>         HLTTag_token_;   
 	edm::EDGetTokenT<trigger::TriggerEvent>       HLTObjTag_token_;
-	
+
+        edm::EDGetTokenT<reco::CaloClusterCollection> caloClusterToken_;
+
         edm::Handle<reco::GenParticleCollection> genParticles_;
+        edm::Handle<reco::CaloClusterCollection> caloClusters_;
 
         // =====================================
         // Configuration parameters that are not tokens

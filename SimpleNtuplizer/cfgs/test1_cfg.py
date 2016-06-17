@@ -43,8 +43,8 @@ secFiles = cms.untracked.vstring()
 
 readFiles.extend([
     # This is an AODSIM example in 80X
-    'file:DoublePhoton_AODSIM_example.root',
-    # 'file:DoubleElectron_AODSIM_example.root',
+    # 'file:DoublePhoton_AODSIM_example.root',
+    'file:DoubleElectron_AODSIM_example.root',
     ])
 secFiles.extend([
     ])
@@ -68,6 +68,8 @@ process.een_analyzer = cms.EDAnalyzer(
     photons      = cms.InputTag("gedPhotons"),
     rho          = cms.InputTag("fixedGridRhoFastjetAll"),
     genparticles = cms.InputTag("genParticles"),
+
+    caloclusters = cms.InputTag("caloclusters"),
     )
 
 process.TFileService = cms.Service(
