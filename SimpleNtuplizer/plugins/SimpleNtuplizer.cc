@@ -27,12 +27,18 @@
 // Constructor
 SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     // All tokens given in the python config!
-    vtxToken_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"))),
-    electronToken_(consumes<reco::GsfElectronCollection>(iConfig.getParameter<edm::InputTag>("electrons"))),
-    photonToken_(consumes<reco::PhotonCollection>(iConfig.getParameter<edm::InputTag>("photons"))),
-    genParticleToken_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("genparticles"))),
-    rhoToken_(consumes<double> (iConfig.getParameter<edm::InputTag>("rho")))
-    {
+  vtxToken_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"))),
+  electronToken_(consumes<reco::GsfElectronCollection>(iConfig.getParameter<edm::InputTag>("electrons"))),
+  photonToken_(consumes<reco::PhotonCollection>(iConfig.getParameter<edm::InputTag>("photons"))),
+  genParticleToken_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("genparticles"))),
+  rhoToken_(consumes<double> (iConfig.getParameter<edm::InputTag>("rho"))),
+  electronTightIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronTightIdMap"))),
+  HLTTag_token_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("HLTTag"))),
+  HLTObjTag_token_(consumes<trigger::TriggerEvent>(iConfig.getParameter<edm::InputTag>("HLTObjTag"))),
+  elecTrig_(iConfig.getUntrackedParameter<std::vector<std::string> >("ElecTrig")),
+  elecFilt_(iConfig.getUntrackedParameter<std::vector<std::string> >("ElecFilt")),
+  isData_(iConfig.getUntrackedParameter<bool >("isData"))
+{
 
     std::cout << ">>>> Inside SimpleNtuplizer::constructor" << std::endl;
 
@@ -303,7 +309,8 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
     // Get GenParticle collection
     //   Definition moved --> class variable
     //   edm::Handle<reco::GenParticleCollection> genParticles;
-    iEvent.getByToken( genParticleToken_, genParticles_ );
+    if (!isData_)
+      iEvent.getByToken( genParticleToken_, genParticles_ );
 
 
     //######################################
@@ -332,6 +339,8 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
     nElectronsMatched_ = 0;
     for (const reco::GsfElectron &el : *electrons) {
         setElectronVariables( el, iEvent, iSetup );
+        findTag             ( el, iEvent, iSetup );
+	
         }
 
     // Loop over photons

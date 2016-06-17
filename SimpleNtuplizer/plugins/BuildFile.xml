@@ -1,21 +1,37 @@
-<use name="FWCore/Framework"/>
-<use name="FWCore/PluginManager"/>
-<use name="FWCore/ParameterSet"/>
-<use name="CommonTools/UtilAlgos"/>
-<use name="DataFormats/EgammaCandidates" />
-<use name="DataFormats/PatCandidates" />
-<use name="RecoEgamma/EgammaTools" />
-<use name="RecoEgamma/PhotonIdentification" />
+<use   name="FWCore/Framework"/>
+<use   name="FWCore/PluginManager"/>
+<use   name="FWCore/ParameterSet"/>
+<use   name="FWCore/Utilities"/>
 
-<use name="CommonTools/UtilAlgos"/>
-<use name="DataFormats/HepMCCandidate"/>
-<use name="RecoEgamma/EgammaTools"/>
-<use name="RecoParticleFlow/PFClusterTools"/>
-<use name="vdt"/>
-<use name="FWCore/Framework"/>
-<use name="FWCore/PluginManager"/>
-<use name="FWCore/ParameterSet"/>
-<use name="DataFormats/ParticleFlowCandidate"/>
-<use name="DataFormats/ParticleFlowReco"/>
+<use   name="CommonTools/UtilAlgos"/>
+
+<use   name="RecoEgamma/EgammaTools"/>
+<use   name="RecoEgamma/PhotonIdentification" />
+<use   name="RecoEcal/EgammaCoreTools"/>
+<use   name="HLTrigger/HLTcore"/>
+<use   name="RecoParticleFlow/PFClusterTools"/>
+
+<use   name="vdt"/>
+
+<use   name="DataFormats/HepMCCandidate"/>
+<use   name="DataFormats/EgammaCandidates" />
+<use   name="DataFormats/PatCandidates" />
+<use   name="DataFormats/EgammaReco"/>
+<use   name="DataFormats/EcalDetId"/>
+<use   name="DataFormats/L1Trigger"/>
+<use   name="DataFormats/L1TGlobal"/>
+<use   name="DataFormats/L1GlobalTrigger"/>
+<use   name="DataFormats/DetId"/>
+<use   name="DataFormats/EcalDigi"/>
+<use   name="DataFormats/Math"/>
+<use   name="DataFormats/ParticleFlowCandidate"/>
+<use   name="DataFormats/ParticleFlowReco"/>
+
+<use   name="CondFormats/EcalObjects"/>
+<use   name="CondFormats/L1TObjects"/>
+<use   name="CondFormats/DataRecord"/>
+<use   name="CondFormats/HLTObjects"/>
+
 
 <flags EDM_PLUGIN="1"/>
+<flags   CXXFLAGS="-g -O0"/>

@@ -50,6 +50,10 @@
 
 #include "RecoEgamma/EgammaTools/interface/EcalClusterLocal.h"
 
+// For trigger
+#include "FWCore/Common/interface/TriggerNames.h"
+#include "DataFormats/Common/interface/TriggerResults.h"
+#include "DataFormats/HLTReco/interface/TriggerEvent.h"
 
 //######################################
 //# Class declaration
@@ -63,6 +67,8 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
 
         void setElectronVariables( const reco::GsfElectron&, const edm::Event&, const edm::EventSetup& );
         void setPhotonVariables(   const reco::Photon&,      const edm::Event&, const edm::EventSetup& );
+
+	void findTag( const reco::RecoCandidate& object, const edm::Event& iEvent, const edm::EventSetup& iSetup );
 
         // void matchPhotonToGenParticle( const reco::PhotonCollection&, const reco::GenParticleCollection& );
         // void matchPhotonToGenParticle( const edm::Handle<reco::PhotonCollection>, const edm::Handle<reco::GenParticleCollection> );
@@ -90,10 +96,18 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         edm::EDGetTokenT<reco::PhotonCollection>      photonToken_;
         edm::EDGetTokenT<reco::GenParticleCollection> genParticleToken_;
         edm::EDGetTokenT<double>                      rhoToken_; 
-
+	edm::EDGetTokenT<edm::ValueMap<bool> >        electronTightIdMapToken_;
+	edm::EDGetTokenT<edm::TriggerResults>         HLTTag_token_;   
+	edm::EDGetTokenT<trigger::TriggerEvent>       HLTObjTag_token_;
+	
         edm::Handle<reco::GenParticleCollection> genParticles_;
 
-
+        // =====================================
+        // Configuration parameters that are not tokens
+	std::vector<std::string> elecTrig_; 
+	std::vector<std::string> elecFilt_; 
+	bool isData_;
+	
         // =====================================
         // Event variables
 
@@ -443,5 +457,10 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         Int_t   genPdgId_p;
         Int_t   genStatus_p;
 
-    };
+	
+	Float_t tp_mll;
+	Float_t tp_tagpt;
+	Float_t tp_tageta;
+	
+};
 
