@@ -46,6 +46,7 @@ process.een_analyzer = cms.EDAnalyzer(
     photons             = cms.InputTag("photons"),
     rho                 = cms.InputTag("fixedGridRhoFastjetAll"),
     genparticles        = cms.InputTag("genParticles"),
+    caloclusters        = cms.InputTag("caloclusters"),
     electronTightIdMap  = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-tight"),
     HLTTag              = cms.InputTag("TriggerResults","","HLT"),
     HLTObjTag           = cms.InputTag("hltTriggerSummaryAOD","","HLT"),

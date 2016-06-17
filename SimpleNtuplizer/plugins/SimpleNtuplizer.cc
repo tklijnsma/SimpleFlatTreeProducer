@@ -32,10 +32,10 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
   photonToken_(consumes<reco::PhotonCollection>(iConfig.getParameter<edm::InputTag>("photons"))),
   genParticleToken_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("genparticles"))),
   rhoToken_(consumes<double> (iConfig.getParameter<edm::InputTag>("rho"))),
-  caloClusterToken_(consumes<reco::CaloClusterCollection>(iConfig.getParameter<edm::InputTag>("caloclusters")))
   electronTightIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronTightIdMap"))),
   HLTTag_token_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("HLTTag"))),
   HLTObjTag_token_(consumes<trigger::TriggerEvent>(iConfig.getParameter<edm::InputTag>("HLTObjTag"))),
+  caloClusterToken_(consumes<reco::CaloClusterCollection>(iConfig.getParameter<edm::InputTag>("caloclusters"))),
   elecTrig_(iConfig.getUntrackedParameter<std::vector<std::string> >("ElecTrig")),
   elecFilt_(iConfig.getUntrackedParameter<std::vector<std::string> >("ElecFilt")),
   isData_(iConfig.getUntrackedParameter<bool >("isData"))

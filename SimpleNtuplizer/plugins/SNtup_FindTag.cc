@@ -21,24 +21,28 @@ void SimpleNtuplizer::findTag(
   tp_mll = -1;
   tp_tagpt = -1;
   tp_tageta = -1;
-  
+
   edm::Handle<edm::TriggerResults> hTrgRes;
-  iEvent.getByToken(HLTTag_token_,hTrgRes);
-
   edm::Handle<trigger::TriggerEvent> hTrgEvt;
-  iEvent.getByToken(HLTObjTag_token_,hTrgEvt);
 
-  // Discard events that did not pass the list of triggers
-  const edm::TriggerNames &triggerNames = iEvent.triggerNames(*hTrgRes);  
-  for (std::string pattern : elecTrig_) {
-    if(edm::is_glob(pattern)) {  // handle pattern with wildcards (*,?)
-      std::vector<std::vector<std::string>::const_iterator> matches = edm::regexMatch(triggerNames.triggerNames(), pattern);
-      if(matches.empty()) {
-	return;
+  if (isData_) {
+
+    // Get trigger information
+    iEvent.getByToken(HLTTag_token_,hTrgRes);    
+    iEvent.getByToken(HLTObjTag_token_,hTrgEvt);
+    
+    // Discard events that did not pass the list of triggers
+    const edm::TriggerNames &triggerNames = iEvent.triggerNames(*hTrgRes);  
+    for (std::string pattern : elecTrig_) {
+      if(edm::is_glob(pattern)) {  // handle pattern with wildcards (*,?)
+	std::vector<std::vector<std::string>::const_iterator> matches = edm::regexMatch(triggerNames.triggerNames(), pattern);
+	if(matches.empty()) {
+	  return;
+	}
       }
     }
   }
-    
+  
   // Get electron collection
   edm::Handle<reco::GsfElectronCollection> electrons;  // For AODSIM
   iEvent.getByToken(electronToken_, electrons);
@@ -63,26 +67,28 @@ void SimpleNtuplizer::findTag(
     passID = (*tight_id_decisions)[elPtr];
     if (!passID) continue;
 
-    for (std::string pattern : elecFilt_) {
-      edm::InputTag filterTag(pattern,"","HLT");
-      if(hTrgEvt->filterIndex(filterTag) < hTrgEvt->sizeFilters()) {
-	const trigger::TriggerObjectCollection& toc(hTrgEvt->getObjects());
-	const trigger::Keys& keys(hTrgEvt->filterKeys(hTrgEvt->filterIndex(filterTag)));
-	
-	for(size_t hlto=0; hlto<keys.size(); hlto++) {
-	  trigger::size_type hltf = keys[hlto];
-	  const trigger::TriggerObject& tobj(toc[hltf]);
-	  std::cout << el->eta() << " " << el->phi() << " " << tobj.eta() << " " << tobj.phi() << std::endl;
-	  if(reco::deltaR(el->eta(),el->phi(),tobj.eta(),tobj.phi()) < 0.2) {
-	    triggerMatch = true;
+    if (isData_) {
+      for (std::string pattern : elecFilt_) {
+	edm::InputTag filterTag(pattern,"","HLT");
+	if(hTrgEvt->filterIndex(filterTag) < hTrgEvt->sizeFilters()) {
+	  const trigger::TriggerObjectCollection& toc(hTrgEvt->getObjects());
+	  const trigger::Keys& keys(hTrgEvt->filterKeys(hTrgEvt->filterIndex(filterTag)));
+	  
+	  for(size_t hlto=0; hlto<keys.size(); hlto++) {
+	    trigger::size_type hltf = keys[hlto];
+	    const trigger::TriggerObject& tobj(toc[hltf]);
+	    std::cout << el->eta() << " " << el->phi() << " " << tobj.eta() << " " << tobj.phi() << std::endl;
+	    if(reco::deltaR(el->eta(),el->phi(),tobj.eta(),tobj.phi()) < 0.2) {
+	      triggerMatch = true;
+	    }
 	  }
 	}
       }
+      if (!triggerMatch) continue;
     }
-    if (!triggerMatch) continue;
-
+    
     float mass = (el->p4()+object.p4()).mass();
-    std::cout << "Found a tag with mass " << mass << std::endl;
+    //    std::cout << "Found a tag with mass " << mass << std::endl;
     if (fabs(mass-91.2) < fabs(tp_mll-91.2)) {
       tp_mll = mass;
       tp_tagpt = el->pt();
