@@ -31,7 +31,9 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     electronToken_(consumes<reco::GsfElectronCollection>(iConfig.getParameter<edm::InputTag>("electrons"))),
     photonToken_(consumes<reco::PhotonCollection>(iConfig.getParameter<edm::InputTag>("photons"))),
     genParticleToken_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("genparticles"))),
-    rhoToken_(consumes<double> (iConfig.getParameter<edm::InputTag>("rho")))
+    rhoToken_(consumes<double> (iConfig.getParameter<edm::InputTag>("rho"))),
+
+    caloClusterToken_(consumes<reco::CaloClusterCollection>(iConfig.getParameter<edm::InputTag>("caloclusters")))
     {
 
     std::cout << ">>>> Inside SimpleNtuplizer::constructor" << std::endl;
@@ -304,6 +306,7 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
     //   Definition moved --> class variable
     //   edm::Handle<reco::GenParticleCollection> genParticles;
     iEvent.getByToken( genParticleToken_, genParticles_ );
+    iEvent.getByToken( caloClusterToken_, caloClusters_ );
 
 
     //######################################
@@ -325,7 +328,7 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
 
     //######################################
     //# Analyze electrons and photons
-    //######################################
+    //######################################    
 
     // Loop over electrons
     nElectrons_ = 0;

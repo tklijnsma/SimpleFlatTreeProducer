@@ -50,6 +50,9 @@
 
 #include "RecoEgamma/EgammaTools/interface/EcalClusterLocal.h"
 
+// Needed for saturation variables
+#include "DataFormats/CaloRecHit/interface/CaloCluster.h"
+
 
 //######################################
 //# Class declaration
@@ -91,7 +94,12 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         edm::EDGetTokenT<reco::GenParticleCollection> genParticleToken_;
         edm::EDGetTokenT<double>                      rhoToken_; 
 
+        edm::EDGetTokenT<reco::CaloClusterCollection> caloClusterToken_;
+
+        // Get the genParticle as a class variable
         edm::Handle<reco::GenParticleCollection> genParticles_;
+        edm::Handle<reco::CaloClusterCollection> caloClusters_;
+
 
 
         // =====================================
