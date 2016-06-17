@@ -75,40 +75,42 @@ void SimpleNtuplizer::setElectronVariables(
 
     // Saturation variables
 
-    edm::Ptr<reco::CaloCluster> seedCluster = superCluster->seed();
+    // edm::Ptr<reco::CaloCluster> seedCluster = superCluster->seed();
+    // DetId seedId = seedCluster->seed();
 
-    DetId seedId = seedCluster->seed();
+    // Get the DetId of the seed of the seedCluster
+    DetId seedId = superCluster->seed()->seed();
 
-    std::vector< std::pair<DetId, float> > hitsAndFractions = seedCluster->hitsAndFractions();
+    bool seedInRecHits = false;
+    bool isSaturated;
+    DetId ecalRecHitId;
+    
+    N_SATURATEDXTALS_e  = 0;
+    seedIsSaturated_e   = false;
+    seedCrystalEnergy_e = 0.0;
 
-    DetId hitId;
-    Double_t fraction;
-    int rawId;
+    for (const EcalRecHit &ecalRecHit : *ecalRecHits_) {
+        
+        isSaturated = ecalRecHit.checkFlag( EcalRecHit::Flags::kSaturated );
+        ecalRecHitId = ecalRecHit.detid();
 
-    for (const std::pair<DetId, float> hitFractionPair : hitsAndFractions) {
+        // Increase the count of saturated crystals
+        if (isSaturated) N_SATURATEDXTALS_e++;
 
-        hitId    = std::get<0>(hitFractionPair);
-        fraction = std::get<1>(hitFractionPair);
-
-        rawId = hitId.rawId();
-
-        cout << "rawId: " << rawId << ",  fraction: " << fraction;
-
-        if ( hitId == seedId ) cout << "   <--- Seed cluster " ;
-        cout << endl;
-
+        // Check if this hit concerns the seed of the seedCluster
+        if ( ecalRecHitId == seedId ){
+            seedIsSaturated_e   = isSaturated;
+            seedCrystalEnergy_e = ecalRecHit.energy();
+            seedInRecHits = true;
+            }
 
         }
 
-
-
-
-    cout << "Testing seed calocluster" << endl;
-    // cout << seed->seed() << endl;
-    cout << endl;
-
-
-
+    cout << "\nProcessing new electron" << endl;
+    if (!seedInRecHits) cout << "WARNING: seedID not found in the EcalRecHits" << endl;
+    cout << "N_SATURATEDXTALS_e:  " << N_SATURATEDXTALS_e  << endl;
+    cout << "seedIsSaturated_e:   " << seedIsSaturated_e   << endl;
+    cout << "seedCrystalEnergy_e: " << seedCrystalEnergy_e << endl;
 
 
     // =====================================

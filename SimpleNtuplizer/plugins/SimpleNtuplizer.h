@@ -53,6 +53,10 @@
 // Needed for saturation variables
 #include "DataFormats/CaloRecHit/interface/CaloCluster.h"
 
+// #include "DataFormats/CaloRecHit/interface/CaloRecHit.h"
+#include "DataFormats/EcalRecHit/interface/EcalRecHit.h"
+
+
 
 //######################################
 //# Class declaration
@@ -94,12 +98,23 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         edm::EDGetTokenT<reco::GenParticleCollection> genParticleToken_;
         edm::EDGetTokenT<double>                      rhoToken_; 
 
-        edm::EDGetTokenT<reco::CaloClusterCollection> caloClusterToken_;
+        // edm::EDGetTokenT<reco::CaloClusterCollection> caloClusterToken_;
+        edm::EDGetTokenT<edm::SortedCollection<EcalRecHit>> ecalRecHitToken_;
 
         // Get the genParticle as a class variable
         edm::Handle<reco::GenParticleCollection> genParticles_;
-        edm::Handle<reco::CaloClusterCollection> caloClusters_;
 
+
+        // edm::Handle<reco::CaloClusterCollection> caloClusters_;
+        // edm::Handle<reco::EcalRecHitCollection> ecalRecHits_;
+        // edm::Handle<reco::EcalRecHitsSortedCollection> ecalRecHits_;
+        edm::Handle<edm::SortedCollection<EcalRecHit>> ecalRecHits_;
+
+
+
+        // EcalRecHitsSorted_reducedEcalRecHitsEB__RECO.
+        // recoGsfElectrons_gedGsfElectrons__RECO.
+        // recoVertexs_offlinePrimaryVertices__RECO.
 
 
         // =====================================
@@ -124,116 +139,6 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         Int_t nPhotons_;
         Int_t nPhotonsMatched_;
 
-
-        //######################################
-        //# Variable list for both electrons and photons
-        //######################################
-
-        /*
-        // Definitive list of variables
-        // Copy this for the photon and electron tree
-
-        // -----------------------------
-        // Variables used in training
-
-        Float_t pt_;
-        Float_t rawEnergy_;
-        Float_t eta_;
-        Float_t phi_;
-        Float_t etaWidth_;
-        Float_t phiWidth_;
-        Float_t r9_;
-        Float_t seedEnergy_;
-        Float_t eMax_;
-        Float_t e2nd_;
-        Float_t eHorizontal_;
-        Float_t eVertical_;
-        Float_t sigmaIetaIeta_;
-        Float_t sigmaIetaIphi_;
-        Float_t sigmaIphiIphi_;
-        Int_t   numberOfClusters_;
-        Int_t   isEB_;
-        Float_t preshowerEnergy_;
-
-        // For photon (except eMax and e2nd, which are also in electronTree)
-        Float_t hadronicOverEm_;
-        Float_t rhoValue_;
-        Float_t delEtaSeed_;
-        Float_t delPhiSeed_;
-        Float_t e5x5_;
-        Float_t e3x3_;
-        Float_t eMax_;
-        Float_t e2nd_;
-        Float_t eTop_;
-        Float_t eBottom_;
-        Float_t eLeft_;
-        Float_t eRight_;
-        Float_t e2x5Max_;
-        Float_t e2x5Left_;
-        Float_t e2x5Right_;
-        Float_t e2x5Top_;
-        Float_t e2x5Bottom_;
-
-        // -----------------------------
-        // Coordinate variables
-
-        // EB
-        std::vector<Int_t>   iEtaCoordinate_;
-        std::vector<Int_t>   iPhiCoordinate_;
-        std::vector<Int_t>   cryEtaCoordinate_;
-        std::vector<Int_t>   cryPhiCoordinate_;
-        // EE
-        std::vector<Int_t>   iXCoordinate_;
-        std::vector<Int_t>   iYCoordinate_;
-        std::vector<Int_t>   cryXCoordinate_;
-        std::vector<Int_t>   cryYCoordinate_;
-
-        // Additional coordinate variables for photon
-        std::vector<Int_t>   iEtaMod5_;
-        std::vector<Int_t>   iPhiMod2_;
-        std::vector<Int_t>   iEtaMod20_;
-        std::vector<Int_t>   iPhiMod20_;
-        std::vector<Float_t> preshowerEnergyPlane1_;
-        std::vector<Float_t> preshowerEnergyPlane2_;
-
-        // -----------------------------
-        // Cluster variables
-
-        Float_t MaxDRclusterDR_;
-        Float_t MaxDRclusterDPhi_;
-        Float_t MaxDRclusterDEta_;
-        Float_t MaxDRclusterRawEnergy_;
-
-        std::vector<Float_t> clusterRawEnergy_;
-        std::vector<Float_t> clusterDPhiToSeed_;
-        std::vector<Float_t> clusterDEtaToSeed_;
-
-        // Only for electron
-        Int_t   IsEcalEnergyCorrected_;
-        Float_t CorrectedEcalEnergy_;
-        Float_t CorrectedEcalEnergyError_;
-
-        // -----------------------------
-        // Ep variables (only for electron)
-
-        Float_t trkMomentum_;
-        Float_t trkMomentumError_;
-        Float_t trkMomentumRelError_;
-        Float_t ecalDriven_;
-        Float_t trackerDriven_;
-        Float_t classification_;
-
-        Float_t genMatchdR_;
-        Float_t genMatchdE_;
-        Float_t genMatchdRdE_;
-        Float_t genPt_;
-        Float_t genPhi_;
-        Float_t genEta_;
-        Float_t genMass_;
-        Float_t genEnergy_;
-        Int_t   genPdgId_;
-        Int_t   genStatus_;
-        */
 
 
         // =====================================
@@ -277,6 +182,15 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         Float_t e2x5Right_e;
         Float_t e2x5Top_e;
         Float_t e2x5Bottom_e;
+
+
+        // -----------------------------
+        // Saturation variables
+
+        Int_t N_SATURATEDXTALS_e;
+        Bool_t seedIsSaturated_e;
+        Double_t seedCrystalEnergy_e;
+
 
         // -----------------------------
         // Coordinate variables
@@ -390,6 +304,15 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         Float_t e2x5Right_p;
         Float_t e2x5Top_p;
         Float_t e2x5Bottom_p;
+
+
+        // -----------------------------
+        // Saturation variables
+
+        Int_t N_SATURATEDXTALS_p;
+        Bool_t seedIsSaturated_p;
+        Double_t seedCrystalEnergy_p;
+
 
         // -----------------------------
         // Coordinate variables

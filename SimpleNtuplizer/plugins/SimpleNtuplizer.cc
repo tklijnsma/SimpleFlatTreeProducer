@@ -33,7 +33,9 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     genParticleToken_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("genparticles"))),
     rhoToken_(consumes<double> (iConfig.getParameter<edm::InputTag>("rho"))),
 
-    caloClusterToken_(consumes<reco::CaloClusterCollection>(iConfig.getParameter<edm::InputTag>("caloclusters")))
+    ecalRecHitToken_(consumes<edm::SortedCollection<EcalRecHit>>(iConfig.getParameter<edm::InputTag>("ecalrechits")))
+    // ecalRecHitEEToken_(consumes<edm::SortedCollection<EcalRecHit>>(iConfig.getParameter<edm::InputTag>("ecalrechitsEE")))
+    // caloClusterToken_(consumes<reco::CaloClusterCollection>(iConfig.getParameter<edm::InputTag>("caloclusters")))
     {
 
     std::cout << ">>>> Inside SimpleNtuplizer::constructor" << std::endl;
@@ -101,6 +103,11 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     electronTree_->Branch( "scSeedSigmaIetaIphi",           &sigmaIetaIphi_e     );
     electronTree_->Branch( "scSeedSigmaIphiIphi",           &sigmaIphiIphi_e     );
     electronTree_->Branch( "N_ECALClusters",                &numberOfClusters_e  );
+
+    electronTree_->Branch( "N_SATURATEDXTALS",              &N_SATURATEDXTALS_e  );
+    electronTree_->Branch( "seedIsSaturated",               &seedIsSaturated_e   );
+    electronTree_->Branch( "seedCrystalEnergy",             &seedCrystalEnergy_e );
+
 
     // Max dR Cluster variables (now always 1 entry)
     electronTree_->Branch( "clusterMaxDR",                  &MaxDRclusterDR_e );
@@ -210,6 +217,10 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     photonTree_->Branch( "e2x5Bottom",                    &e2x5Bottom_p        );
     photonTree_->Branch( "scPreshowerEnergy",             &preshowerEnergy_p   );
 
+    photonTree_->Branch( "N_SATURATEDXTALS",              &N_SATURATEDXTALS_p  );
+    photonTree_->Branch( "seedIsSaturated",               &seedIsSaturated_p   );
+    photonTree_->Branch( "seedCrystalEnergy",             &seedCrystalEnergy_p );
+
     // Max dR Cluster variables (now always 1 entry)
     photonTree_->Branch( "clusterMaxDR",                  &MaxDRclusterDR_p );
     photonTree_->Branch( "clusterMaxDRDPhi",              &MaxDRclusterDPhi_p );
@@ -306,7 +317,10 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
     //   Definition moved --> class variable
     //   edm::Handle<reco::GenParticleCollection> genParticles;
     iEvent.getByToken( genParticleToken_, genParticles_ );
-    iEvent.getByToken( caloClusterToken_, caloClusters_ );
+    // iEvent.getByToken( caloClusterToken_, caloClusters_ );
+
+
+    iEvent.getByToken( ecalRecHitToken_, ecalRecHits_ );
 
 
     //######################################

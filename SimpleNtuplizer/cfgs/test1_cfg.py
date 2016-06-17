@@ -69,8 +69,12 @@ process.een_analyzer = cms.EDAnalyzer(
     rho          = cms.InputTag("fixedGridRhoFastjetAll"),
     genparticles = cms.InputTag("genParticles"),
 
-    caloclusters = cms.InputTag("caloclusters"),
+    # caloclusters = cms.InputTag("caloclusters"),
+    ecalrechits = cms.InputTag("reducedEcalRecHitsEB"),
     )
+
+    # EcalRecHitsSorted_reducedEcalRecHitsEB__RECO.
+    # recoGsfElectrons_gedGsfElectrons__RECO.
 
 process.TFileService = cms.Service(
     "TFileService",
