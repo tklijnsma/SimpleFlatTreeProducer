@@ -62,6 +62,15 @@
 #include "DataFormats/EcalRecHit/interface/EcalRecHit.h"
 
 
+// To calculate the 2x5 variables for electrons
+#include "FWCore/Framework/interface/ESHandle.h"
+#include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
+#include "Geometry/CaloGeometry/interface/CaloGeometry.h"
+#include "Geometry/CaloTopology/interface/CaloTopology.h"
+#include "Geometry/Records/interface/CaloGeometryRecord.h"
+#include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
+
+
 //######################################
 //# Class declaration
 //######################################
@@ -82,7 +91,7 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         bool matchPhotonToGenParticle( const reco::Photon& );
         bool matchElectronToGenParticle( const reco::GsfElectron& );
 
-        void SetSaturationVariables( edm::Ptr<reco::CaloCluster> seedCluster, bool isEB, bool isElectron );
+        void SetSaturationVariables( edm::Ptr<reco::CaloCluster> seedCluster, edm::Handle<edm::SortedCollection<EcalRecHit>> ecalRecHits, bool isElectron );
 
         enum ElectronMatchType{
             UNMATCHED = 0, 
@@ -115,25 +124,22 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
     	edm::EDGetTokenT<edm::TriggerResults>         HLTTag_token_;   
     	edm::EDGetTokenT<trigger::TriggerEvent>       HLTObjTag_token_;
 
-        // edm::EDGetTokenT<reco::CaloClusterCollection> caloClusterToken_;
+        // =====================================
+        // Needed for 2x5 calculations
+        const CaloTopology *topology_;
+        const CaloGeometry *geometry_;
 
-
-        edm::Handle<reco::GenParticleCollection> genParticles_;
-
+        // =====================================
+        // Set some collections as class variables
+        edm::Handle<reco::GenParticleCollection>       genParticles_;
         edm::Handle<edm::SortedCollection<EcalRecHit>> ecalRecHitsEB_;
         edm::Handle<edm::SortedCollection<EcalRecHit>> ecalRecHitsEE_;
-
-
-        // EcalRecHitsSorted_reducedEcalRecHitsEB__RECO.
-        // recoGsfElectrons_gedGsfElectrons__RECO.
-        // recoVertexs_offlinePrimaryVertices__RECO.
 
         // =====================================
         // Configuration parameters that are not tokens
     	std::vector<std::string> elecTrig_; 
     	std::vector<std::string> elecFilt_; 
     	bool isData_;
-
 	
 
         // =====================================
@@ -172,22 +178,26 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         Float_t phi_e;
         Float_t etaWidth_e;
         Float_t phiWidth_e;
-        Float_t r9_e;
         Float_t seedEnergy_e;
+        Int_t   numberOfClusters_e;
+        Int_t   isEB_e;
+        Float_t preshowerEnergy_e;
+
+        Float_t hadronicOverEm_e;
+        Float_t rhoValue_e;
+        Float_t delEtaSeed_e;
+        Float_t delPhiSeed_e;
+
+
+        // -----------------------------
+        // Showershape variables -- These have a full5x5_ equivalent
+
+        Float_t r9_e;
         Float_t eHorizontal_e;
         Float_t eVertical_e;
         Float_t sigmaIetaIeta_e;
         Float_t sigmaIetaIphi_e;
         Float_t sigmaIphiIphi_e;
-        Int_t   numberOfClusters_e;
-        Int_t   isEB_e;
-        Float_t preshowerEnergy_e;
-
-        // For photon (except eMax and e2nd, which are also in electronTree)
-        Float_t hadronicOverEm_e;
-        Float_t rhoValue_e;
-        Float_t delEtaSeed_e;
-        Float_t delPhiSeed_e;
         Float_t e5x5_e;
         Float_t e3x3_e;
         Float_t eMax_e;
@@ -201,6 +211,26 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         Float_t e2x5Right_e;
         Float_t e2x5Top_e;
         Float_t e2x5Bottom_e;
+
+        Float_t full5x5_r9_e;
+        Float_t full5x5_eHorizontal_e;
+        Float_t full5x5_eVertical_e;
+        Float_t full5x5_sigmaIetaIeta_e;
+        Float_t full5x5_sigmaIetaIphi_e;
+        Float_t full5x5_sigmaIphiIphi_e;
+        Float_t full5x5_e5x5_e;
+        Float_t full5x5_e3x3_e;
+        Float_t full5x5_eMax_e;
+        Float_t full5x5_e2nd_e;
+        Float_t full5x5_eTop_e;
+        Float_t full5x5_eBottom_e;
+        Float_t full5x5_eLeft_e;
+        Float_t full5x5_eRight_e;
+        Float_t full5x5_e2x5Max_e;
+        Float_t full5x5_e2x5Left_e;
+        Float_t full5x5_e2x5Right_e;
+        Float_t full5x5_e2x5Top_e;
+        Float_t full5x5_e2x5Bottom_e;
 
 
         // -----------------------------
@@ -246,9 +276,12 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         std::vector<Float_t> clusterDEtaToSeed_e;
 
         // Only for electron
-        Int_t   IsEcalEnergyCorrected_e;
-        Float_t CorrectedEcalEnergy_e;
-        Float_t CorrectedEcalEnergyError_e;
+        // Int_t   IsEcalEnergyCorrected_e;
+        // Float_t CorrectedEcalEnergy_e;
+        // Float_t CorrectedEcalEnergyError_e;
+        Float_t corrEnergy74X_e;
+        Float_t corrEnergy74XError_e;
+
 
         // -----------------------------
         // Ep variables (only for electron)
@@ -276,14 +309,16 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         // Photon tree variables
 
         // Last minute addition (add same type of objects to electrons tree too)
-        Float_t scEcalEnergy_p      ;
-        Float_t phoEcalEnergy_p     ;
-        Float_t regression1Energy_p ;
-        Float_t regression2Energy_p ;
-        Float_t scEcalEnergyError_p      ;
-        Float_t phoEcalEnergyError_p     ;
-        Float_t regression1EnergyError_p ;
-        Float_t regression2EnergyError_p ;
+        // Float_t scEcalEnergy_p      ;
+        // Float_t phoEcalEnergy_p     ;
+        // Float_t regression1Energy_p ;
+        // Float_t regression2Energy_p ;
+        // Float_t scEcalEnergyError_p      ;
+        // Float_t phoEcalEnergyError_p     ;
+        // Float_t regression1EnergyError_p ;
+        // Float_t regression2EnergyError_p ;
+        Float_t corrEnergy74X_p;
+        Float_t corrEnergy74XError_p;
 
         // -----------------------------
         // Variables used in training
@@ -294,22 +329,27 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         Float_t phi_p;
         Float_t etaWidth_p;
         Float_t phiWidth_p;
-        Float_t r9_p;
+
         Float_t seedEnergy_p;
+        Int_t   numberOfClusters_p;
+        Int_t   isEB_p;
+        Float_t preshowerEnergy_p;
+
+        Float_t hadronicOverEm_p;
+        Float_t rhoValue_p;
+        Float_t delEtaSeed_p;
+        Float_t delPhiSeed_p;
+
+
+        // -----------------------------
+        // Showershape variables
+
+        Float_t r9_p;
         Float_t eHorizontal_p;
         Float_t eVertical_p;
         Float_t sigmaIetaIeta_p;
         Float_t sigmaIetaIphi_p;
         Float_t sigmaIphiIphi_p;
-        Int_t   numberOfClusters_p;
-        Int_t   isEB_p;
-        Float_t preshowerEnergy_p;
-
-        // For photon (except eMax and e2nd, which are also in electronTree)
-        Float_t hadronicOverEm_p;
-        Float_t rhoValue_p;
-        Float_t delEtaSeed_p;
-        Float_t delPhiSeed_p;
         Float_t e5x5_p;
         Float_t e3x3_p;
         Float_t eMax_p;
@@ -323,6 +363,26 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         Float_t e2x5Right_p;
         Float_t e2x5Top_p;
         Float_t e2x5Bottom_p;
+
+        Float_t full5x5_r9_p;
+        Float_t full5x5_eHorizontal_p;
+        Float_t full5x5_eVertical_p;
+        Float_t full5x5_sigmaIetaIeta_p;
+        Float_t full5x5_sigmaIetaIphi_p;
+        Float_t full5x5_sigmaIphiIphi_p;
+        Float_t full5x5_e5x5_p;
+        Float_t full5x5_e3x3_p;
+        Float_t full5x5_eMax_p;
+        Float_t full5x5_e2nd_p;
+        Float_t full5x5_eTop_p;
+        Float_t full5x5_eBottom_p;
+        Float_t full5x5_eLeft_p;
+        Float_t full5x5_eRight_p;
+        Float_t full5x5_e2x5Max_p;
+        Float_t full5x5_e2x5Left_p;
+        Float_t full5x5_e2x5Right_p;
+        Float_t full5x5_e2x5Top_p;
+        Float_t full5x5_e2x5Bottom_p;
 
 
         // -----------------------------

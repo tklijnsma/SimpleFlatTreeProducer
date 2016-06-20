@@ -103,21 +103,63 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     electronTree_->Branch( "scPhi",                         &phi_e               );
     electronTree_->Branch( "scEtaWidth",                    &etaWidth_e          );
     electronTree_->Branch( "scPhiWidth",                    &phiWidth_e          );
-    electronTree_->Branch( "scSeedR9",                      &r9_e                );
     electronTree_->Branch( "scSeedRawEnergy",               &seedEnergy_e        );
-    electronTree_->Branch( "scSeedEmax",                    &eMax_e              );
-    electronTree_->Branch( "scSeedE2nd",                    &e2nd_e              );
-    electronTree_->Branch( "scSeedLeftRightAsym",           &eHorizontal_e       );
-    electronTree_->Branch( "scSeedTopBottomAsym",           &eVertical_e         );
-    electronTree_->Branch( "scSeedSigmaIetaIeta",           &sigmaIetaIeta_e     );
-    electronTree_->Branch( "scSeedSigmaIetaIphi",           &sigmaIetaIphi_e     );
-    electronTree_->Branch( "scSeedSigmaIphiIphi",           &sigmaIphiIphi_e     );
-    electronTree_->Branch( "N_ECALClusters",                &numberOfClusters_e  );
+    electronTree_->Branch( "hadronicOverEm",                &hadronicOverEm_e    );
+    electronTree_->Branch( "rhoValue",                      &rhoValue_e          );
+    electronTree_->Branch( "delEtaSeed",                    &delEtaSeed_e        );
+    electronTree_->Branch( "delPhiSeed",                    &delPhiSeed_e        );
 
+
+    // All the showershape variables
+    electronTree_->Branch( "r9",                     &r9_e                      );
+    electronTree_->Branch( "eHorizontal",            &eHorizontal_e             );
+    electronTree_->Branch( "eVertical",              &eVertical_e               );
+    electronTree_->Branch( "sigmaIetaIeta",          &sigmaIetaIeta_e           );
+    electronTree_->Branch( "sigmaIetaIphi",          &sigmaIetaIphi_e           );
+    electronTree_->Branch( "sigmaIphiIphi",          &sigmaIphiIphi_e           );
+    electronTree_->Branch( "e5x5",                   &e5x5_e                    );
+    electronTree_->Branch( "e3x3",                   &e3x3_e                    );
+    electronTree_->Branch( "eMax",                   &eMax_e                    );
+    electronTree_->Branch( "e2nd",                   &e2nd_e                    );
+    electronTree_->Branch( "eTop",                   &eTop_e                    );
+    electronTree_->Branch( "eBottom",                &eBottom_e                 );
+    electronTree_->Branch( "eLeft",                  &eLeft_e                   );
+    electronTree_->Branch( "eRight",                 &eRight_e                  );
+    electronTree_->Branch( "e2x5Max",                &e2x5Max_e                 );
+    electronTree_->Branch( "e2x5Left",               &e2x5Left_e                );
+    electronTree_->Branch( "e2x5Right",              &e2x5Right_e               );
+    electronTree_->Branch( "e2x5Top",                &e2x5Top_e                 );
+    electronTree_->Branch( "e2x5Bottom",             &e2x5Bottom_e              );
+
+    electronTree_->Branch( "full5x5_r9",             &full5x5_r9_e              );
+    electronTree_->Branch( "full5x5_eHorizontal",    &full5x5_eHorizontal_e     );
+    electronTree_->Branch( "full5x5_eVertical",      &full5x5_eVertical_e       );
+    electronTree_->Branch( "full5x5_sigmaIetaIeta",  &full5x5_sigmaIetaIeta_e   );
+    electronTree_->Branch( "full5x5_sigmaIetaIphi",  &full5x5_sigmaIetaIphi_e   );
+    electronTree_->Branch( "full5x5_sigmaIphiIphi",  &full5x5_sigmaIphiIphi_e   );
+    electronTree_->Branch( "full5x5_e5x5",           &full5x5_e5x5_e            );
+    electronTree_->Branch( "full5x5_e3x3",           &full5x5_e3x3_e            );
+    electronTree_->Branch( "full5x5_eMax",           &full5x5_eMax_e            );
+    electronTree_->Branch( "full5x5_e2nd",           &full5x5_e2nd_e            );
+    electronTree_->Branch( "full5x5_eTop",           &full5x5_eTop_e            );
+    electronTree_->Branch( "full5x5_eBottom",        &full5x5_eBottom_e         );
+    electronTree_->Branch( "full5x5_eLeft",          &full5x5_eLeft_e           );
+    electronTree_->Branch( "full5x5_eRight",         &full5x5_eRight_e          );
+    electronTree_->Branch( "full5x5_e2x5Max",        &full5x5_e2x5Max_e         );
+    electronTree_->Branch( "full5x5_e2x5Left",       &full5x5_e2x5Left_e        );
+    electronTree_->Branch( "full5x5_e2x5Right",      &full5x5_e2x5Right_e       );
+    electronTree_->Branch( "full5x5_e2x5Top",        &full5x5_e2x5Top_e         );
+    electronTree_->Branch( "full5x5_e2x5Bottom",     &full5x5_e2x5Bottom_e      );
+
+
+    // Saturation variables
     electronTree_->Branch( "N_SATURATEDXTALS",              &N_SATURATEDXTALS_e  );
     electronTree_->Branch( "seedIsSaturated",               &seedIsSaturated_e   );
     electronTree_->Branch( "seedCrystalEnergy",             &seedCrystalEnergy_e );
 
+
+    // Cluster variables
+    electronTree_->Branch( "N_ECALClusters",                &numberOfClusters_e  );
 
     // Max dR Cluster variables (now always 1 entry)
     electronTree_->Branch( "clusterMaxDR",                  &MaxDRclusterDR_e );
@@ -130,6 +172,10 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     electronTree_->Branch( "clusterDPhiToSeed",             &clusterDPhiToSeed_e );         
     electronTree_->Branch( "clusterDEtaToSeed",             &clusterDEtaToSeed_e );
 
+
+    // <<<< Only this part (the coordinate variables) needs to be uniformized with the photon tree
+    //      The rest should be the same
+
     // These for EB electrons
     electronTree_->Branch( "scSeedCryEta",                  &cryEtaCoordinate_e );         
     electronTree_->Branch( "scSeedCryPhi",                  &cryPhiCoordinate_e );         
@@ -140,17 +186,18 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     electronTree_->Branch( "scSeedCryIxV2",                 &iXCoordinate_e );         
     electronTree_->Branch( "scSeedCryIyV2",                 &iYCoordinate_e );         
     electronTree_->Branch( "scPreshowerEnergy",             &preshowerEnergy_e ); // <-- Also saved for EB
-
-
-    // =====================================
-    // Not used for training (but some still needed for e.g. cuts)
-
     electronTree_->Branch( "scSeedCryX",                    &cryXCoordinate_e );
     electronTree_->Branch( "scSeedCryY",                    &cryYCoordinate_e );
+
+    // (end of coordinate variables) >>>>
     
-    electronTree_->Branch( "IsEcalEnergyCorrected",         &IsEcalEnergyCorrected_e );
-    electronTree_->Branch( "CorrectedEcalEnergy",           &CorrectedEcalEnergy_e );
-    electronTree_->Branch( "CorrectedEcalEnergyError",      &CorrectedEcalEnergyError_e );
+
+    // electronTree_->Branch( "IsEcalEnergyCorrected",         &IsEcalEnergyCorrected_e );
+    // electronTree_->Branch( "CorrectedEcalEnergy",           &CorrectedEcalEnergy_e );
+    // electronTree_->Branch( "CorrectedEcalEnergyError",      &CorrectedEcalEnergyError_e );
+    electronTree_->Branch( "corrEnergy74X",                 &corrEnergy74X_e );
+    electronTree_->Branch( "corrEnergy74XError",            &corrEnergy74XError_e );
+
 
     electronTree_->Branch( "genMatchdR",                    &genMatchdR_e     );
     electronTree_->Branch( "genMatchdE",                    &genMatchdE_e     );
@@ -172,8 +219,8 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     
     // T&P
     electronTree_->Branch( "mll",                           &tp_mll );
-    electronTree_->Branch( "eleClass",                      &tp_tagpt );
-    electronTree_->Branch( "eleClass",                      &tp_tageta );
+    electronTree_->Branch( "tagpt",                         &tp_tagpt );
+    electronTree_->Branch( "tageta",                        &tp_tageta );
 
 
     //######################################
@@ -195,46 +242,67 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     // =====================================
     // All actually used for training
 
+    // Common
     photonTree_->Branch( "nVtx",                          &nPV_                );
     photonTree_->Branch( "scRawEnergy",                   &rawEnergy_p         );
     photonTree_->Branch( "scEta",                         &eta_p               );
     photonTree_->Branch( "scPhi",                         &phi_p               );
     photonTree_->Branch( "scEtaWidth",                    &etaWidth_p          );
     photonTree_->Branch( "scPhiWidth",                    &phiWidth_p          );
-    photonTree_->Branch( "scSeedR9",                      &r9_p                );
     photonTree_->Branch( "scSeedRawEnergy",               &seedEnergy_p        );
-    // photonTree_->Branch( "scSeedEmax",                    &eMax_p              );
-    // photonTree_->Branch( "scSeedE2nd",                    &e2nd_p              );
-    photonTree_->Branch( "scSeedLeftRightAsym",           &eHorizontal_p       );
-    photonTree_->Branch( "scSeedTopBottomAsym",           &eVertical_p         );
-    photonTree_->Branch( "scSeedSigmaIetaIeta",           &sigmaIetaIeta_p     );
-    photonTree_->Branch( "scSeedSigmaIetaIphi",           &sigmaIetaIphi_p     );
-    photonTree_->Branch( "scSeedSigmaIphiIphi",           &sigmaIphiIphi_p     );
-    photonTree_->Branch( "N_ECALClusters",                &numberOfClusters_p  );
-
-    // Extra variables not in electronTree
     photonTree_->Branch( "hadronicOverEm",                &hadronicOverEm_p    );
     photonTree_->Branch( "rhoValue",                      &rhoValue_p          );
     photonTree_->Branch( "delEtaSeed",                    &delEtaSeed_p        );
     photonTree_->Branch( "delPhiSeed",                    &delPhiSeed_p        );
-    photonTree_->Branch( "e5x5",                          &e5x5_p              );
-    photonTree_->Branch( "e3x3",                          &e3x3_p              );
-    photonTree_->Branch( "eMax",                          &eMax_p              );
-    photonTree_->Branch( "e2nd",                          &e2nd_p              );
-    photonTree_->Branch( "eTop",                          &eTop_p              );
-    photonTree_->Branch( "eBottom",                       &eBottom_p           );
-    photonTree_->Branch( "eLeft",                         &eLeft_p             );
-    photonTree_->Branch( "eRight",                        &eRight_p            );
-    photonTree_->Branch( "e2x5Max",                       &e2x5Max_p           );
-    photonTree_->Branch( "e2x5Left",                      &e2x5Left_p          );
-    photonTree_->Branch( "e2x5Right",                     &e2x5Right_p         );
-    photonTree_->Branch( "e2x5Top",                       &e2x5Top_p           );
-    photonTree_->Branch( "e2x5Bottom",                    &e2x5Bottom_p        );
-    photonTree_->Branch( "scPreshowerEnergy",             &preshowerEnergy_p   );
+    
+    // Showershape variables
+    photonTree_->Branch( "r9",                     &r9_p                      );
+    photonTree_->Branch( "eHorizontal",            &eHorizontal_p             );
+    photonTree_->Branch( "eVertical",              &eVertical_p               );
+    photonTree_->Branch( "sigmaIetaIeta",          &sigmaIetaIeta_p           );
+    photonTree_->Branch( "sigmaIetaIphi",          &sigmaIetaIphi_p           );
+    photonTree_->Branch( "sigmaIphiIphi",          &sigmaIphiIphi_p           );
+    photonTree_->Branch( "e5x5",                   &e5x5_p                    );
+    photonTree_->Branch( "e3x3",                   &e3x3_p                    );
+    photonTree_->Branch( "eMax",                   &eMax_p                    );
+    photonTree_->Branch( "e2nd",                   &e2nd_p                    );
+    photonTree_->Branch( "eTop",                   &eTop_p                    );
+    photonTree_->Branch( "eBottom",                &eBottom_p                 );
+    photonTree_->Branch( "eLeft",                  &eLeft_p                   );
+    photonTree_->Branch( "eRight",                 &eRight_p                  );
+    photonTree_->Branch( "e2x5Max",                &e2x5Max_p                 );
+    photonTree_->Branch( "e2x5Left",               &e2x5Left_p                );
+    photonTree_->Branch( "e2x5Right",              &e2x5Right_p               );
+    photonTree_->Branch( "e2x5Top",                &e2x5Top_p                 );
+    photonTree_->Branch( "e2x5Bottom",             &e2x5Bottom_p              );
 
+    photonTree_->Branch( "full5x5_r9",             &full5x5_r9_p              );
+    photonTree_->Branch( "full5x5_eHorizontal",    &full5x5_eHorizontal_p     );
+    photonTree_->Branch( "full5x5_eVertical",      &full5x5_eVertical_p       );
+    photonTree_->Branch( "full5x5_sigmaIetaIeta",  &full5x5_sigmaIetaIeta_p   );
+    photonTree_->Branch( "full5x5_sigmaIetaIphi",  &full5x5_sigmaIetaIphi_p   );
+    photonTree_->Branch( "full5x5_sigmaIphiIphi",  &full5x5_sigmaIphiIphi_p   );
+    photonTree_->Branch( "full5x5_e5x5",           &full5x5_e5x5_p            );
+    photonTree_->Branch( "full5x5_e3x3",           &full5x5_e3x3_p            );
+    photonTree_->Branch( "full5x5_eMax",           &full5x5_eMax_p            );
+    photonTree_->Branch( "full5x5_e2nd",           &full5x5_e2nd_p            );
+    photonTree_->Branch( "full5x5_eTop",           &full5x5_eTop_p            );
+    photonTree_->Branch( "full5x5_eBottom",        &full5x5_eBottom_p         );
+    photonTree_->Branch( "full5x5_eLeft",          &full5x5_eLeft_p           );
+    photonTree_->Branch( "full5x5_eRight",         &full5x5_eRight_p          );
+    photonTree_->Branch( "full5x5_e2x5Max",        &full5x5_e2x5Max_p         );
+    photonTree_->Branch( "full5x5_e2x5Left",       &full5x5_e2x5Left_p        );
+    photonTree_->Branch( "full5x5_e2x5Right",      &full5x5_e2x5Right_p       );
+    photonTree_->Branch( "full5x5_e2x5Top",        &full5x5_e2x5Top_p         );
+    photonTree_->Branch( "full5x5_e2x5Bottom",     &full5x5_e2x5Bottom_p      );
+
+    // Saturation variables
     photonTree_->Branch( "N_SATURATEDXTALS",              &N_SATURATEDXTALS_p  );
     photonTree_->Branch( "seedIsSaturated",               &seedIsSaturated_p   );
     photonTree_->Branch( "seedCrystalEnergy",             &seedCrystalEnergy_p );
+
+    // Cluster variables
+    photonTree_->Branch( "N_ECALClusters",                &numberOfClusters_p  );
 
     // Max dR Cluster variables (now always 1 entry)
     photonTree_->Branch( "clusterMaxDR",                  &MaxDRclusterDR_p );
@@ -246,6 +314,7 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     photonTree_->Branch( "clusterRawEnergy",              &clusterRawEnergy_p );        
     photonTree_->Branch( "clusterDPhiToSeed",             &clusterDPhiToSeed_p );         
     photonTree_->Branch( "clusterDEtaToSeed",             &clusterDEtaToSeed_p );
+
 
     // EB coordinate variables
     photonTree_->Branch( "iEtaCoordinate",                &iEtaCoordinate_p         );
@@ -259,18 +328,23 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     photonTree_->Branch( "preshowerEnergyPlane2",         &preshowerEnergyPlane2_p  );
     photonTree_->Branch( "iXCoordinate",                  &iXCoordinate_p           );
     photonTree_->Branch( "iYCoordinate",                  &iYCoordinate_p           );
+    photonTree_->Branch( "scPreshowerEnergy",             &preshowerEnergy_p   );
+
 
 
     // 
     // Last minute additions: corrections
-    photonTree_->Branch( "scEcalEnergy",              &scEcalEnergy_p            );
-    photonTree_->Branch( "scEcalEnergyError",         &scEcalEnergyError_p       );
-    photonTree_->Branch( "phoEcalEnergy",             &phoEcalEnergy_p           );
-    photonTree_->Branch( "phoEcalEnergyError",        &phoEcalEnergyError_p      );
-    photonTree_->Branch( "regression1Energy",         &regression1Energy_p       );
-    photonTree_->Branch( "regression1EnergyError",    &regression1EnergyError_p  );
-    photonTree_->Branch( "regression2Energy",         &regression2Energy_p       );
-    photonTree_->Branch( "regression2EnergyError",    &regression2EnergyError_p  );
+    // photonTree_->Branch( "scEcalEnergy",              &scEcalEnergy_p            );
+    // photonTree_->Branch( "scEcalEnergyError",         &scEcalEnergyError_p       );
+    // photonTree_->Branch( "phoEcalEnergy",             &phoEcalEnergy_p           );
+    // photonTree_->Branch( "phoEcalEnergyError",        &phoEcalEnergyError_p      );
+    // photonTree_->Branch( "regression1Energy",         &regression1Energy_p       );
+    // photonTree_->Branch( "regression1EnergyError",    &regression1EnergyError_p  );
+    // photonTree_->Branch( "regression2Energy",         &regression2Energy_p       );
+    // photonTree_->Branch( "regression2EnergyError",    &regression2EnergyError_p  );
+    photonTree_->Branch( "corrEnergy74X",                 &corrEnergy74X_p );
+    photonTree_->Branch( "corrEnergy74XError",            &corrEnergy74XError_p );
+
 
     // =====================================
     // Not used for training (but some still needed for e.g. cuts)
@@ -288,8 +362,8 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
 
     // T&P
     photonTree_->Branch( "mll",                           &tp_mll );
-    photonTree_->Branch( "eleClass",                      &tp_tagpt );
-    photonTree_->Branch( "eleClass",                      &tp_tageta );
+    photonTree_->Branch( "tagpt",                         &tp_tagpt );
+    photonTree_->Branch( "tageta",                        &tp_tageta );
 
     }
 
@@ -343,7 +417,19 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
     if (!isData_)
       iEvent.getByToken( genParticleToken_, genParticles_ );
 
-    // iEvent.getByToken( caloClusterToken_, caloClusters_ );
+
+    // =====================================
+    // Get geometry and topology (need for 2x5 variables only)
+
+    edm::ESHandle<CaloGeometry> pGeometry;
+    iSetup.get<CaloGeometryRecord>().get(pGeometry);
+    // const CaloGeometry *geometry = pGeometry.product();
+    geometry_ = pGeometry.product();
+    
+    edm::ESHandle<CaloTopology> pTopology;
+    iSetup.get<CaloTopologyRecord>().get(pTopology);
+    // const CaloTopology *topology = pTopology.product();
+    topology_ = pTopology.product();
 
 
     //######################################
@@ -394,7 +480,12 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
 //# Count saturated crystal; also gets the energy in the seed crystal
 //######################################    
 
-void SimpleNtuplizer::SetSaturationVariables( edm::Ptr<reco::CaloCluster> seedCluster, bool isEB, bool isElectron ){
+void SimpleNtuplizer::SetSaturationVariables(
+        edm::Ptr<reco::CaloCluster> seedCluster,
+        edm::Handle<edm::SortedCollection<EcalRecHit>> ecalRecHits,
+        bool isElectron
+        ){
+
 
     DetId seedId                                            = seedCluster->seed();
     std::vector< std::pair<DetId, float> > hitsAndFractions = seedCluster->hitsAndFractions();
@@ -409,10 +500,10 @@ void SimpleNtuplizer::SetSaturationVariables( edm::Ptr<reco::CaloCluster> seedCl
     bool     seedIsSaturated   = false;
     Double_t seedCrystalEnergy = 0.0;
 
-    // Get the right ecalRecHits collection (different for barrel and encap)
-    edm::Handle<edm::SortedCollection<EcalRecHit>> ecalRecHits;
-    if (isEB) ecalRecHits = ecalRecHitsEB_ ;
-    else      ecalRecHits = ecalRecHitsEE_ ;
+    // // Get the right ecalRecHits collection (different for barrel and encap)
+    // edm::Handle<edm::SortedCollection<EcalRecHit>> ecalRecHits;
+    // if (isEB) ecalRecHits = ecalRecHitsEB_ ;
+    // else      ecalRecHits = ecalRecHitsEE_ ;
 
     // Loop over all hits in the seedCluster
     for (const std::pair<DetId, float> hitFractionPair : hitsAndFractions) {

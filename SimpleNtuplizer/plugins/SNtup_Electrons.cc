@@ -43,6 +43,25 @@ void SimpleNtuplizer::setElectronVariables(
     // Raw energy of the super cluster per electron
     rawEnergy = superCluster->rawEnergy();
 
+    // Get rho
+    edm::Handle< double > rhoH;
+    iEvent.getByToken(rhoToken_,rhoH);
+    Float_t rho = *rhoH;
+
+
+    //######################################
+    //# Start filling branch variables
+    //######################################
+
+    // Check if it's barrel or not
+    isEB_e             = electron.isEB() ;
+
+    // Get the right ecalRecHits collection (different for barrel and encap)
+    edm::Handle<edm::SortedCollection<EcalRecHit>> ecalRecHits;
+    if (isEB_e) ecalRecHits = ecalRecHitsEB_ ;
+    else        ecalRecHits = ecalRecHitsEE_ ;
+
+
     // Write electron variables to class variables
     pt_e               = electron.pt() ;
     rawEnergy_e        = rawEnergy ;
@@ -50,38 +69,97 @@ void SimpleNtuplizer::setElectronVariables(
     phi_e              = superCluster->phi() ;
     etaWidth_e         = superCluster->etaWidth() ;
     phiWidth_e         = superCluster->phiWidth() ;
-    r9_e               = electron.showerShape().r9 ;
     seedEnergy_e       = superCluster->seed()->energy() ;
-    eMax_e             = electron.showerShape().eMax ;
-    e2nd_e             = electron.showerShape().e2nd ;
-    eHorizontal_e      = electron.showerShape().eLeft + electron.showerShape().eRight != 0.f  
-                                    ? ( electron.showerShape().eLeft - electron.showerShape().eRight ) /
-                                      ( electron.showerShape().eLeft + electron.showerShape().eRight ) : 0.f  ;
-    eVertical_e        = electron.showerShape().eTop + electron.showerShape().eBottom != 0.f
-                                    ? ( electron.showerShape().eTop - electron.showerShape().eBottom ) /
-                                      ( electron.showerShape().eTop + electron.showerShape().eBottom ) : 0.f  ;
-    sigmaIetaIeta_e    = electron.showerShape().sigmaIetaIeta ;
-    sigmaIetaIphi_e    = electron.showerShape().sigmaIetaIphi ;
-    sigmaIphiIphi_e    = electron.showerShape().sigmaIphiIphi ;
-    preshowerEnergy_e  = superCluster->preshowerEnergy() ;        
+
+    preshowerEnergy_e  = superCluster->preshowerEnergy() ;
 
     numberOfClusters   = std::max( 0, int (superCluster->clusters().size()) );
     numberOfClusters_e = numberOfClusters ;
-    isEB_e             = electron.isEB() ;
+
+    hadronicOverEm_e   = electron.hadronicOverEm();
+    rhoValue_e         = rho;
+    delEtaSeed_e       = superCluster->seed()->eta() - superCluster->position().Eta();
+    delPhiSeed_e       = reco::deltaPhi( superCluster->seed()->phi(),superCluster->position().Phi());
+
 
     // To compare to current 'official' regression
-    IsEcalEnergyCorrected_e    = electron.corrections().isEcalEnergyCorrected;
-    CorrectedEcalEnergy_e      = electron.corrections().correctedEcalEnergy;
-    CorrectedEcalEnergyError_e = electron.corrections().correctedEcalEnergyError;
+    // IsEcalEnergyCorrected_e    = electron.corrections().isEcalEnergyCorrected;
+    // CorrectedEcalEnergy_e      = electron.corrections().correctedEcalEnergy;
+    // CorrectedEcalEnergyError_e = electron.corrections().correctedEcalEnergyError;
+    corrEnergy74X_e       = electron.corrections().correctedEcalEnergy;
+    corrEnergy74XError_e  = electron.corrections().correctedEcalEnergyError;
 
+
+    // =====================================
+    // Showershape variables
+
+    const auto& showerShape = electron.showerShape();
+
+    r9_e               = showerShape.r9 ;
+    eMax_e             = showerShape.eMax ;
+    e2nd_e             = showerShape.e2nd ;
+    eHorizontal_e      = showerShape.eLeft + showerShape.eRight != 0.f  
+                                    ? ( showerShape.eLeft - showerShape.eRight ) /
+                                      ( showerShape.eLeft + showerShape.eRight ) : 0.f  ;
+    eVertical_e        = showerShape.eTop + showerShape.eBottom != 0.f
+                                    ? ( showerShape.eTop - showerShape.eBottom ) /
+                                      ( showerShape.eTop + showerShape.eBottom ) : 0.f  ;
+    sigmaIetaIeta_e    = showerShape.sigmaIetaIeta ;
+    sigmaIetaIphi_e    = showerShape.sigmaIetaIphi ;
+    sigmaIphiIphi_e    = showerShape.sigmaIphiIphi ;
+
+    e5x5_e             = showerShape.e5x5       ;
+    eTop_e             = showerShape.eTop       ;
+    eBottom_e          = showerShape.eBottom    ;
+    eLeft_e            = showerShape.eLeft      ;
+    eRight_e           = showerShape.eRight     ;  
+    e2x5Max_e          = showerShape.e2x5Max    ;
+    
+    // EcalClusterToolsT<noZS>; noZS = full5x5, ZS = weighted
+    e3x3_e             = EcalClusterToolsT<false>::e3x3(       *superCluster->seed(), &*ecalRecHits, topology_ );
+    e2x5Left_e         = EcalClusterToolsT<false>::e2x5Left(   *superCluster->seed(), &*ecalRecHits, topology_ );
+    e2x5Right_e        = EcalClusterToolsT<false>::e2x5Right(  *superCluster->seed(), &*ecalRecHits, topology_ );
+    e2x5Top_e          = EcalClusterToolsT<false>::e2x5Top(    *superCluster->seed(), &*ecalRecHits, topology_ );
+    e2x5Bottom_e       = EcalClusterToolsT<false>::e2x5Bottom( *superCluster->seed(), &*ecalRecHits, topology_ );
+
+
+    // -------------------------------
+    // Repeat for the full 5x5
+
+    const auto& full5x5_showerShape = electron.full5x5_showerShape();
+
+    full5x5_r9_e               = full5x5_showerShape.r9 ;
+    full5x5_eMax_e             = full5x5_showerShape.eMax ;
+    full5x5_e2nd_e             = full5x5_showerShape.e2nd ;
+    full5x5_eHorizontal_e      = full5x5_showerShape.eLeft + full5x5_showerShape.eRight != 0.f  
+                                    ? ( full5x5_showerShape.eLeft - full5x5_showerShape.eRight ) /
+                                      ( full5x5_showerShape.eLeft + full5x5_showerShape.eRight ) : 0.f  ;
+    full5x5_eVertical_e        = full5x5_showerShape.eTop + full5x5_showerShape.eBottom != 0.f
+                                    ? ( full5x5_showerShape.eTop - full5x5_showerShape.eBottom ) /
+                                      ( full5x5_showerShape.eTop + full5x5_showerShape.eBottom ) : 0.f  ;
+    full5x5_sigmaIetaIeta_e    = full5x5_showerShape.sigmaIetaIeta ;
+    full5x5_sigmaIetaIphi_e    = full5x5_showerShape.sigmaIetaIphi ;
+    full5x5_sigmaIphiIphi_e    = full5x5_showerShape.sigmaIphiIphi ;
+
+    full5x5_e5x5_e             = full5x5_showerShape.e5x5       ;
+    full5x5_eTop_e             = full5x5_showerShape.eTop       ;
+    full5x5_eBottom_e          = full5x5_showerShape.eBottom    ;
+    full5x5_eLeft_e            = full5x5_showerShape.eLeft      ;
+    full5x5_eRight_e           = full5x5_showerShape.eRight     ;  
+    full5x5_e2x5Max_e          = full5x5_showerShape.e2x5Max    ;
+    
+    // EcalClusterToolsT<noZS>; noZS = full5x5, ZS = weighted
+    full5x5_e3x3_e             = EcalClusterToolsT<true>::e3x3(       *superCluster->seed(), &*ecalRecHits, topology_ );
+    full5x5_e2x5Left_e         = EcalClusterToolsT<true>::e2x5Left(   *superCluster->seed(), &*ecalRecHits, topology_ );
+    full5x5_e2x5Right_e        = EcalClusterToolsT<true>::e2x5Right(  *superCluster->seed(), &*ecalRecHits, topology_ );
+    full5x5_e2x5Top_e          = EcalClusterToolsT<true>::e2x5Top(    *superCluster->seed(), &*ecalRecHits, topology_ );
+    full5x5_e2x5Bottom_e       = EcalClusterToolsT<true>::e2x5Bottom( *superCluster->seed(), &*ecalRecHits, topology_ );
+
+
+    // =====================================
     // Saturation variables
-    SetSaturationVariables( superCluster->seed(), isEB_e, true );
 
-    // cout << "\nProcessing new electron" << endl;
-    // cout << "  N_SATURATEDXTALS_e:  " << N_SATURATEDXTALS_e  << endl;
-    // cout << "  seedIsSaturated_e:   " << seedIsSaturated_e   << endl;
-    // cout << "  seedCrystalEnergy_e: " << seedCrystalEnergy_e << endl;
-    // cout << "  isEB_e:              " << isEB_e              << endl;
+    SetSaturationVariables( superCluster->seed(), ecalRecHits, true );
 
 
     // =====================================
@@ -165,8 +243,10 @@ void SimpleNtuplizer::setElectronVariables(
     cryYCoordinate_e.clear();
 
     if( electron.isEB() ){
+        
         ecalLocal.localCoordsEB( *superCluster->seed(), iSetup,
                                   cryEta, cryPhi, iEta, iPhi, dummy, dummy );
+
         iEtaCoordinate_e   .push_back( iEta );
         iPhiCoordinate_e   .push_back( iPhi );
         cryEtaCoordinate_e .push_back( cryEta );
@@ -174,8 +254,10 @@ void SimpleNtuplizer::setElectronVariables(
         }
 
     else{
+        
         ecalLocal.localCoordsEE( *superCluster->seed(), iSetup,
                                   cryX, cryY, iX, iY, dummy, dummy );
+        
         iXCoordinate_e     .push_back( iX );
         iYCoordinate_e     .push_back( iY );
         cryXCoordinate_e   .push_back( cryX );

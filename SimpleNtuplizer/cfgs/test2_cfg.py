@@ -15,15 +15,17 @@ process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc'   , '')
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(50) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(15) )
 
 readFiles = cms.untracked.vstring()
 secFiles = cms.untracked.vstring() 
 
 readFiles.extend([
     # This is an AODSIM example in 80X
-    'file:/nfs-5/users/rclsa/RegressionTraining/TreeMaker/CMSSW_8_0_9/src/SimpleFlatTreeProducer/SimpleNtuplizer/example/SingleElectron_Run2016B_PromptReco_v2.root',
-    'file:/nfs-5/users/rclsa/RegressionTraining/TreeMaker/CMSSW_8_0_9/src/SimpleFlatTreeProducer/SimpleNtuplizer/example/DYToEE_NNPDF30_13TeV_powheg_pythia8.root'
+    # 'file:/nfs-5/users/rclsa/RegressionTraining/TreeMaker/CMSSW_8_0_9/src/SimpleFlatTreeProducer/SimpleNtuplizer/example/SingleElectron_Run2016B_PromptReco_v2.root',
+    # 'file:/nfs-5/users/rclsa/RegressionTraining/TreeMaker/CMSSW_8_0_9/src/SimpleFlatTreeProducer/SimpleNtuplizer/example/DYToEE_NNPDF30_13TeV_powheg_pythia8.root'
+    'file:/afs/cern.ch/work/r/rcoelhol/public/ExampleAODs/SingleElectron_Run2016B_PromptReco_v2.root',
+    'file:/afs/cern.ch/work/r/rcoelhol/public/ExampleAODs/DYToEE_NNPDF30_13TeV_powheg_pythia8.root',
     ])
 secFiles.extend([
     ])
@@ -46,7 +48,12 @@ process.een_analyzer = cms.EDAnalyzer(
     photons             = cms.InputTag("photons"),
     rho                 = cms.InputTag("fixedGridRhoFastjetAll"),
     genparticles        = cms.InputTag("genParticles"),
-    caloclusters        = cms.InputTag("caloclusters"),
+    # caloclusters        = cms.InputTag("caloclusters"),
+    # Saturation
+    ecalrechitsEB       = cms.InputTag("reducedEcalRecHitsEB"),
+    ecalrechitsEE       = cms.InputTag("reducedEcalRecHitsEE"),
+
+    # T&P
     electronTightIdMap  = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-tight"),
     HLTTag              = cms.InputTag("TriggerResults","","HLT"),
     HLTObjTag           = cms.InputTag("hltTriggerSummaryAOD","","HLT"),

@@ -35,7 +35,6 @@ void SimpleNtuplizer::setPhotonVariables(
     // if( missing_clusters ) return ; // do not apply corrections in case of missing info (slimmed MiniAOD electrons)
 
     const double rawEnergy = superCluster->rawEnergy(); 
-    const auto& showerShape = photon.showerShapeVariables();
 
     // Get rho
     edm::Handle< double > rhoH;
@@ -43,21 +42,41 @@ void SimpleNtuplizer::setPhotonVariables(
     Float_t rho = *rhoH;
 
 
+    //######################################
+    //# Start filling branch variables
+    //######################################
+
+    // Check if it's barrel or not
+    isEB_p             = photon.isEB() ;
+
     // Write photon variables to class variables
-    pt_p              = photon.pt() ;
-    rawEnergy_p     = rawEnergy ;
-    eta_p           = superCluster->eta() ;
-    phi_p           = superCluster->phi() ;
-    etaWidth_p      = superCluster->etaWidth() ;
-    phiWidth_p      = superCluster->phiWidth() ;
-    r9_p            = photon.r9() ;
-    seedEnergy_p    = superCluster->seed()->energy() ;
+    pt_p               = photon.pt() ;
+    rawEnergy_p        = rawEnergy ;
+    eta_p              = superCluster->eta() ;
+    phi_p              = superCluster->phi() ;
+    etaWidth_p         = superCluster->etaWidth() ;
+    phiWidth_p         = superCluster->phiWidth() ;
+
+    seedEnergy_p       = superCluster->seed()->energy() ;
 
     // Vars NOT in electronTree:
     hadronicOverEm_p   = photon.hadronicOverEm();
     rhoValue_p         = rho;
     delEtaSeed_p       = seedCluster->eta()-superCluster->position().Eta();
     delPhiSeed_p       = reco::deltaPhi(seedCluster->phi(),superCluster->position().Phi());
+
+    preshowerEnergy_p = superCluster->preshowerEnergy() ;        
+
+    numberOfClusters   = std::max( 0, int (superCluster->clusters().size()) );
+    numberOfClusters_p = numberOfClusters ;
+
+
+    // =====================================
+    // Showershape variables
+
+    const auto& showerShape = photon.showerShapeVariables();
+    
+    r9_p               = photon.r9() ;
     e5x5_p             = showerShape.e5x5       ;
     e3x3_p             = showerShape.e3x3       ;
     eMax_p             = showerShape.maxEnergyXtal ; // <-- Also in electronTree
@@ -72,50 +91,65 @@ void SimpleNtuplizer::setPhotonVariables(
     e2x5Top_p          = showerShape.e2x5Top    ;
     e2x5Bottom_p       = showerShape.e2x5Bottom ;
 
-    eHorizontal_p   = showerShape.eLeft + showerShape.eRight != 0.f  
+    eHorizontal_p      = showerShape.eLeft + showerShape.eRight != 0.f  
                                  ? ( showerShape.eLeft - showerShape.eRight ) /
                                    ( showerShape.eLeft + showerShape.eRight ) : 0.f  ;
-    eVertical_p     = showerShape.eTop + showerShape.eBottom != 0.f
+    eVertical_p        = showerShape.eTop + showerShape.eBottom != 0.f
                                  ? ( showerShape.eTop - showerShape.eBottom ) /
                                    ( showerShape.eTop + showerShape.eBottom ) : 0.f  ;
-    sigmaIetaIeta_p = showerShape.sigmaIetaIeta ;
-    sigmaIetaIphi_p = showerShape.sigmaIetaIphi ;
-    sigmaIphiIphi_p = showerShape.sigmaIphiIphi ;
-    preshowerEnergy_p = superCluster->preshowerEnergy() ;        
+    sigmaIetaIeta_p    = showerShape.sigmaIetaIeta ;
+    sigmaIetaIphi_p    = showerShape.sigmaIetaIphi ;
+    sigmaIphiIphi_p    = showerShape.sigmaIphiIphi ;
 
-    numberOfClusters   = std::max( 0, int (superCluster->clusters().size()) );
-    numberOfClusters_p = numberOfClusters ;
-    isEB_p              = photon.isEB() ;
+    // -------------------------------
+    // Repeat for the full 5x5
+
+    const auto& full5x5_showerShape = photon.full5x5_showerShapeVariables();
+    
+    full5x5_r9_p               = photon.full5x5_r9() ;
+    full5x5_e5x5_p             = full5x5_showerShape.e5x5       ;
+    full5x5_e3x3_p             = full5x5_showerShape.e3x3       ;
+    full5x5_eMax_p             = full5x5_showerShape.maxEnergyXtal ; // <-- Also in electronTree
+    full5x5_e2nd_p             = full5x5_showerShape.e2nd       ; // <-- Also in electronTree
+    full5x5_eTop_p             = full5x5_showerShape.eTop       ;
+    full5x5_eBottom_p          = full5x5_showerShape.eBottom    ;
+    full5x5_eLeft_p            = full5x5_showerShape.eLeft      ;
+    full5x5_eRight_p           = full5x5_showerShape.eRight     ;  
+    full5x5_e2x5Max_p          = full5x5_showerShape.e2x5Max    ;
+    full5x5_e2x5Left_p         = full5x5_showerShape.e2x5Left   ;
+    full5x5_e2x5Right_p        = full5x5_showerShape.e2x5Right  ;
+    full5x5_e2x5Top_p          = full5x5_showerShape.e2x5Top    ;
+    full5x5_e2x5Bottom_p       = full5x5_showerShape.e2x5Bottom ;
+
+    full5x5_eHorizontal_p      = full5x5_showerShape.eLeft + full5x5_showerShape.eRight != 0.f  
+                                 ? ( full5x5_showerShape.eLeft - full5x5_showerShape.eRight ) /
+                                   ( full5x5_showerShape.eLeft + full5x5_showerShape.eRight ) : 0.f  ;
+    full5x5_eVertical_p        = full5x5_showerShape.eTop + full5x5_showerShape.eBottom != 0.f
+                                 ? ( full5x5_showerShape.eTop - full5x5_showerShape.eBottom ) /
+                                   ( full5x5_showerShape.eTop + full5x5_showerShape.eBottom ) : 0.f  ;
+    full5x5_sigmaIetaIeta_p    = full5x5_showerShape.sigmaIetaIeta ;
+    full5x5_sigmaIetaIphi_p    = full5x5_showerShape.sigmaIetaIphi ;
+    full5x5_sigmaIphiIphi_p    = full5x5_showerShape.sigmaIphiIphi ;
 
 
     // Which one is the current 74 regression energy?
-    scEcalEnergy_p            = photon.energyCorrections().scEcalEnergy ;
-    scEcalEnergyError_p       = photon.energyCorrections().scEcalEnergyError ;
-    phoEcalEnergy_p           = photon.energyCorrections().phoEcalEnergy ;
-    phoEcalEnergyError_p      = photon.energyCorrections().phoEcalEnergyError ;
-    regression1Energy_p       = photon.energyCorrections().regression1Energy ;
-    regression1EnergyError_p  = photon.energyCorrections().regression1EnergyError ;
-    regression2Energy_p       = photon.energyCorrections().regression2Energy ;
-    regression2EnergyError_p  = photon.energyCorrections().regression2EnergyError ;
+    // scEcalEnergy_p            = photon.energyCorrections().scEcalEnergy ;
+    // scEcalEnergyError_p       = photon.energyCorrections().scEcalEnergyError ;
+    // phoEcalEnergy_p           = photon.energyCorrections().phoEcalEnergy ;
+    // phoEcalEnergyError_p      = photon.energyCorrections().phoEcalEnergyError ;
+    // regression1Energy_p       = photon.energyCorrections().regression1Energy ;
+    // regression1EnergyError_p  = photon.energyCorrections().regression1EnergyError ;
+    // regression2Energy_p       = photon.energyCorrections().regression2Energy ;
+    // regression2EnergyError_p  = photon.energyCorrections().regression2EnergyError ;
+    corrEnergy74X_e       = photon.energy();
+    corrEnergy74XError_e  = photon.energyCorrections().regression1EnergyError ;
 
-    // std::cout << "Some vars for the photon:"                      << std::endl;
-    // std::cout << "rawEnergy_p         = " <<  rawEnergy_p         << std::endl ;    
-    // std::cout << "scEcalEnergy_p      = " <<  scEcalEnergy_p      << std::endl ;
-    // std::cout << "phoEcalEnergy_p     = " <<  phoEcalEnergy_p     << std::endl ;
-    // std::cout << "regression1Energy_p = " <<  regression1Energy_p << std::endl ;
-    // std::cout << "regression2Energy_p = " <<  regression2Energy_p << std::endl ;
-
-    // std::cout << "scEcalEnergyError_p      = " <<  scEcalEnergyError_p      << std::endl ;
-    // std::cout << "phoEcalEnergyError_p     = " <<  phoEcalEnergyError_p     << std::endl ;
-    // std::cout << "regression1EnergyError_p = " <<  regression1EnergyError_p << std::endl ;
-    // std::cout << "regression2EnergyError_p = " <<  regression2EnergyError_p << std::endl ;
-
-    // Double_t the_energy = photon.energy();
-    // std::cout << "photon.energy()     = " <<  the_energy << std::endl << std::endl;
-    
 
     // Saturation variables
-    SetSaturationVariables( superCluster->seed(), isEB_p, false );
+    edm::Handle<edm::SortedCollection<EcalRecHit>> ecalRecHits;
+    if (isEB_p) ecalRecHits = ecalRecHitsEB_ ;
+    else        ecalRecHits = ecalRecHitsEE_ ;
+    SetSaturationVariables( superCluster->seed(), ecalRecHits, false );
 
 
     // =====================================
@@ -219,7 +253,9 @@ void SimpleNtuplizer::setPhotonVariables(
         }
     
     else {
+        
         EEDetId eeseedid( seedCluster->seed());
+
         preshowerEnergyPlane1_p  .push_back( superCluster->preshowerEnergyPlane1() / rawEnergy );
         preshowerEnergyPlane2_p  .push_back( superCluster->preshowerEnergyPlane2() / rawEnergy );
         iXCoordinate_p           .push_back( eeseedid.ix() );
