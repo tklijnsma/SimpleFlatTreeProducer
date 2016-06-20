@@ -50,12 +50,16 @@
 
 #include "RecoEgamma/EgammaTools/interface/EcalClusterLocal.h"
 
+// For trigger
+#include "FWCore/Common/interface/TriggerNames.h"
+#include "DataFormats/Common/interface/TriggerResults.h"
+#include "DataFormats/HLTReco/interface/TriggerEvent.h"
+
 // Needed for saturation variables
 #include "DataFormats/CaloRecHit/interface/CaloCluster.h"
 
 // #include "DataFormats/CaloRecHit/interface/CaloRecHit.h"
 #include "DataFormats/EcalRecHit/interface/EcalRecHit.h"
-
 
 
 //######################################
@@ -70,6 +74,8 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
 
         void setElectronVariables( const reco::GsfElectron&, const edm::Event&, const edm::EventSetup& );
         void setPhotonVariables(   const reco::Photon&,      const edm::Event&, const edm::EventSetup& );
+
+	void findTag( const reco::RecoCandidate& object, const edm::Event& iEvent, const edm::EventSetup& iSetup );
 
         // void matchPhotonToGenParticle( const reco::PhotonCollection&, const reco::GenParticleCollection& );
         // void matchPhotonToGenParticle( const edm::Handle<reco::PhotonCollection>, const edm::Handle<reco::GenParticleCollection> );
@@ -100,26 +106,35 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         edm::EDGetTokenT<reco::GenParticleCollection> genParticleToken_;
         edm::EDGetTokenT<double>                      rhoToken_; 
 
-        // edm::EDGetTokenT<reco::CaloClusterCollection> caloClusterToken_;
+        // Tokens for saturation variables
         edm::EDGetTokenT<edm::SortedCollection<EcalRecHit>> ecalRecHitEBToken_;
         edm::EDGetTokenT<edm::SortedCollection<EcalRecHit>> ecalRecHitEEToken_;
+	
+        // Tokens for T&P
+        edm::EDGetTokenT<edm::ValueMap<bool> >        electronTightIdMapToken_;
+    	edm::EDGetTokenT<edm::TriggerResults>         HLTTag_token_;   
+    	edm::EDGetTokenT<trigger::TriggerEvent>       HLTObjTag_token_;
 
-        // Get the genParticle as a class variable
+        // edm::EDGetTokenT<reco::CaloClusterCollection> caloClusterToken_;
+
+
         edm::Handle<reco::GenParticleCollection> genParticles_;
 
-
-        // edm::Handle<reco::CaloClusterCollection> caloClusters_;
-        // edm::Handle<reco::EcalRecHitCollection> ecalRecHits_;
-        // edm::Handle<reco::EcalRecHitsSortedCollection> ecalRecHits_;
         edm::Handle<edm::SortedCollection<EcalRecHit>> ecalRecHitsEB_;
         edm::Handle<edm::SortedCollection<EcalRecHit>> ecalRecHitsEE_;
-
 
 
         // EcalRecHitsSorted_reducedEcalRecHitsEB__RECO.
         // recoGsfElectrons_gedGsfElectrons__RECO.
         // recoVertexs_offlinePrimaryVertices__RECO.
 
+        // =====================================
+        // Configuration parameters that are not tokens
+    	std::vector<std::string> elecTrig_; 
+    	std::vector<std::string> elecFilt_; 
+    	bool isData_;
+
+	
 
         // =====================================
         // Event variables
@@ -378,5 +393,12 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         Int_t   genPdgId_p;
         Int_t   genStatus_p;
 
-    };
+	
+        // T&P variables
+    	Float_t tp_mll;
+    	Float_t tp_tagpt;
+    	Float_t tp_tageta;
+        
+	
+};
 
