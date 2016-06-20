@@ -19,9 +19,11 @@ void SimpleNtuplizer::setElectronVariables(
     nElectrons_++;
 
     // Try to match to genParticle; quit function if electron is not matched
-    bool successful_match = matchElectronToGenParticle( electron );
-    if(!successful_match) return;
-
+    if (!isData_) {
+      bool successful_match = matchElectronToGenParticle( electron );
+      if(!successful_match) return;
+    }
+    
     // Increase count of matched photons in event
     nElectronsMatched_++;
 

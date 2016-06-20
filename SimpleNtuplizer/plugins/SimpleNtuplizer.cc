@@ -32,8 +32,20 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     photonToken_(consumes<reco::PhotonCollection>(iConfig.getParameter<edm::InputTag>("photons"))),
     genParticleToken_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("genparticles"))),
     rhoToken_(consumes<double> (iConfig.getParameter<edm::InputTag>("rho"))),
+    
+    // Saturation
     ecalRecHitEBToken_(consumes<edm::SortedCollection<EcalRecHit>>(iConfig.getParameter<edm::InputTag>("ecalrechitsEB"))),
-    ecalRecHitEEToken_(consumes<edm::SortedCollection<EcalRecHit>>(iConfig.getParameter<edm::InputTag>("ecalrechitsEE")))
+    ecalRecHitEEToken_(consumes<edm::SortedCollection<EcalRecHit>>(iConfig.getParameter<edm::InputTag>("ecalrechitsEE"))),
+
+    // T&P
+    electronTightIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronTightIdMap"))),
+    HLTTag_token_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("HLTTag"))),
+    HLTObjTag_token_(consumes<trigger::TriggerEvent>(iConfig.getParameter<edm::InputTag>("HLTObjTag"))),
+    // caloClusterToken_(consumes<reco::CaloClusterCollection>(iConfig.getParameter<edm::InputTag>("caloclusters"))),
+    elecTrig_(iConfig.getUntrackedParameter<std::vector<std::string> >("ElecTrig")),
+    elecFilt_(iConfig.getUntrackedParameter<std::vector<std::string> >("ElecFilt")),
+    isData_(iConfig.getUntrackedParameter<bool >("isData"))
+    
     {
 
     std::cout << ">>>> Inside SimpleNtuplizer::constructor" << std::endl;
@@ -157,6 +169,11 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     electronTree_->Branch( "eleEcalDriven",                 &ecalDriven_e );
     electronTree_->Branch( "eleTrackerDriven",              &trackerDriven_e );
     electronTree_->Branch( "eleClass",                      &classification_e );
+    
+    // T&P
+    electronTree_->Branch( "mll",                           &tp_mll );
+    electronTree_->Branch( "eleClass",                      &tp_tagpt );
+    electronTree_->Branch( "eleClass",                      &tp_tageta );
 
 
     //######################################
@@ -269,6 +286,11 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     photonTree_->Branch( "genPdgId",                      &genPdgId_p       );
     photonTree_->Branch( "genStatus",                     &genStatus_p      );
 
+    // T&P
+    photonTree_->Branch( "mll",                           &tp_mll );
+    photonTree_->Branch( "eleClass",                      &tp_tagpt );
+    photonTree_->Branch( "eleClass",                      &tp_tageta );
+
     }
 
 // Deconstructor
@@ -315,9 +337,13 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
     iEvent.getByToken( genParticleToken_, genParticles_ );
     // iEvent.getByToken( caloClusterToken_, caloClusters_ );
 
-
     iEvent.getByToken( ecalRecHitEBToken_, ecalRecHitsEB_ );
     iEvent.getByToken( ecalRecHitEEToken_, ecalRecHitsEE_ );
+
+    if (!isData_)
+      iEvent.getByToken( genParticleToken_, genParticles_ );
+
+    // iEvent.getByToken( caloClusterToken_, caloClusters_ );
 
 
     //######################################
@@ -345,13 +371,16 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
     nElectrons_ = 0;
     nElectronsMatched_ = 0;
     for (const reco::GsfElectron &el : *electrons) {
+        findTag             ( el, iEvent, iSetup );
         setElectronVariables( el, iEvent, iSetup );
+	
         }
 
     // Loop over photons
     nPhotons_ = 0;
     nPhotonsMatched_ = 0;
     for (const reco::Photon &photon : *photons) {
+        findTag           ( photon, iEvent, iSetup );
         setPhotonVariables( photon, iEvent, iSetup );
         }
 
