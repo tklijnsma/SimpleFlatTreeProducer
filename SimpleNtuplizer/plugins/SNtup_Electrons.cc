@@ -72,45 +72,14 @@ void SimpleNtuplizer::setElectronVariables(
     CorrectedEcalEnergy_e      = electron.corrections().correctedEcalEnergy;
     CorrectedEcalEnergyError_e = electron.corrections().correctedEcalEnergyError;
 
-
     // Saturation variables
+    SetSaturationVariables( superCluster->seed(), isEB_e, true );
 
-    // edm::Ptr<reco::CaloCluster> seedCluster = superCluster->seed();
-    // DetId seedId = seedCluster->seed();
-
-    // Get the DetId of the seed of the seedCluster
-    DetId seedId = superCluster->seed()->seed();
-
-    bool seedInRecHits = false;
-    bool isSaturated;
-    DetId ecalRecHitId;
-    
-    N_SATURATEDXTALS_e  = 0;
-    seedIsSaturated_e   = false;
-    seedCrystalEnergy_e = 0.0;
-
-    for (const EcalRecHit &ecalRecHit : *ecalRecHits_) {
-        
-        isSaturated = ecalRecHit.checkFlag( EcalRecHit::Flags::kSaturated );
-        ecalRecHitId = ecalRecHit.detid();
-
-        // Increase the count of saturated crystals
-        if (isSaturated) N_SATURATEDXTALS_e++;
-
-        // Check if this hit concerns the seed of the seedCluster
-        if ( ecalRecHitId == seedId ){
-            seedIsSaturated_e   = isSaturated;
-            seedCrystalEnergy_e = ecalRecHit.energy();
-            seedInRecHits = true;
-            }
-
-        }
-
-    cout << "\nProcessing new electron" << endl;
-    if (!seedInRecHits) cout << "WARNING: seedID not found in the EcalRecHits" << endl;
-    cout << "N_SATURATEDXTALS_e:  " << N_SATURATEDXTALS_e  << endl;
-    cout << "seedIsSaturated_e:   " << seedIsSaturated_e   << endl;
-    cout << "seedCrystalEnergy_e: " << seedCrystalEnergy_e << endl;
+    // cout << "\nProcessing new electron" << endl;
+    // cout << "  N_SATURATEDXTALS_e:  " << N_SATURATEDXTALS_e  << endl;
+    // cout << "  seedIsSaturated_e:   " << seedIsSaturated_e   << endl;
+    // cout << "  seedCrystalEnergy_e: " << seedCrystalEnergy_e << endl;
+    // cout << "  isEB_e:              " << isEB_e              << endl;
 
 
     // =====================================

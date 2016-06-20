@@ -112,6 +112,9 @@ void SimpleNtuplizer::setPhotonVariables(
     // std::cout << "photon.energy()     = " <<  the_energy << std::endl << std::endl;
     
 
+    // Saturation variables
+    SetSaturationVariables( superCluster->seed(), isEB_p, false );
+
 
     // =====================================
     // Cluster variables

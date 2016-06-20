@@ -62,19 +62,14 @@ process.source = cms.Source(
 
 process.een_analyzer = cms.EDAnalyzer(
     'SimpleNtuplizer',
-    vertices     = cms.InputTag("offlinePrimaryVertices"),
-    electrons    = cms.InputTag("gedGsfElectrons"),
-    #photons      = cms.InputTag("photons"),
-    photons      = cms.InputTag("gedPhotons"),
-    rho          = cms.InputTag("fixedGridRhoFastjetAll"),
-    genparticles = cms.InputTag("genParticles"),
-
-    # caloclusters = cms.InputTag("caloclusters"),
-    ecalrechits = cms.InputTag("reducedEcalRecHitsEB"),
+    vertices      = cms.InputTag("offlinePrimaryVertices"),
+    electrons     = cms.InputTag("gedGsfElectrons"),
+    photons       = cms.InputTag("gedPhotons"),
+    rho           = cms.InputTag("fixedGridRhoFastjetAll"),
+    genparticles  = cms.InputTag("genParticles"),
+    ecalrechitsEB = cms.InputTag("reducedEcalRecHitsEB"),
+    ecalrechitsEE = cms.InputTag("reducedEcalRecHitsEE"),
     )
-
-    # EcalRecHitsSorted_reducedEcalRecHitsEB__RECO.
-    # recoGsfElectrons_gedGsfElectrons__RECO.
 
 process.TFileService = cms.Service(
     "TFileService",

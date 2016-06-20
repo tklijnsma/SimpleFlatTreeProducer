@@ -76,6 +76,8 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         bool matchPhotonToGenParticle( const reco::Photon& );
         bool matchElectronToGenParticle( const reco::GsfElectron& );
 
+        void SetSaturationVariables( edm::Ptr<reco::CaloCluster> seedCluster, bool isEB, bool isElectron );
+
         enum ElectronMatchType{
             UNMATCHED = 0, 
             TRUE_PROMPT_ELECTRON, 
@@ -99,7 +101,8 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         edm::EDGetTokenT<double>                      rhoToken_; 
 
         // edm::EDGetTokenT<reco::CaloClusterCollection> caloClusterToken_;
-        edm::EDGetTokenT<edm::SortedCollection<EcalRecHit>> ecalRecHitToken_;
+        edm::EDGetTokenT<edm::SortedCollection<EcalRecHit>> ecalRecHitEBToken_;
+        edm::EDGetTokenT<edm::SortedCollection<EcalRecHit>> ecalRecHitEEToken_;
 
         // Get the genParticle as a class variable
         edm::Handle<reco::GenParticleCollection> genParticles_;
@@ -108,7 +111,8 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         // edm::Handle<reco::CaloClusterCollection> caloClusters_;
         // edm::Handle<reco::EcalRecHitCollection> ecalRecHits_;
         // edm::Handle<reco::EcalRecHitsSortedCollection> ecalRecHits_;
-        edm::Handle<edm::SortedCollection<EcalRecHit>> ecalRecHits_;
+        edm::Handle<edm::SortedCollection<EcalRecHit>> ecalRecHitsEB_;
+        edm::Handle<edm::SortedCollection<EcalRecHit>> ecalRecHitsEE_;
 
 
 

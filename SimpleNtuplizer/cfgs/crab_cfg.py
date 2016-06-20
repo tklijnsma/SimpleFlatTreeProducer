@@ -13,7 +13,10 @@ config = config()
 #config.General.requestName              = 'TKNtup_0306_Electron_HiPt'
 # config.General.requestName              = 'TKNtup_0306_Photon_HiPt'
 
-config.General.requestName              = 'TKNtup_12June_Photon_highpt_corr'
+# config.General.requestName              = 'TKNtup_12June_Photon_highpt_corr'
+
+# 20 June: First test of saturation variables
+config.General.requestName              = 'TKNtup_20June_Photon_highpt_saturationtest'
 
 config.General.workArea                 = './'
 config.General.transferOutputs          = True
@@ -36,7 +39,7 @@ config.Data.ignoreLocality              = True
 config.Data.publication                 = True
 
 # Limit number of files for test runs
-#config.Data.totalUnits                  = 10
+config.Data.totalUnits                  = 15
 
 config.Data.outLFNDirBase               = '/store/user/tklijnsm'
 

@@ -32,10 +32,8 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     photonToken_(consumes<reco::PhotonCollection>(iConfig.getParameter<edm::InputTag>("photons"))),
     genParticleToken_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("genparticles"))),
     rhoToken_(consumes<double> (iConfig.getParameter<edm::InputTag>("rho"))),
-
-    ecalRecHitToken_(consumes<edm::SortedCollection<EcalRecHit>>(iConfig.getParameter<edm::InputTag>("ecalrechits")))
-    // ecalRecHitEEToken_(consumes<edm::SortedCollection<EcalRecHit>>(iConfig.getParameter<edm::InputTag>("ecalrechitsEE")))
-    // caloClusterToken_(consumes<reco::CaloClusterCollection>(iConfig.getParameter<edm::InputTag>("caloclusters")))
+    ecalRecHitEBToken_(consumes<edm::SortedCollection<EcalRecHit>>(iConfig.getParameter<edm::InputTag>("ecalrechitsEB"))),
+    ecalRecHitEEToken_(consumes<edm::SortedCollection<EcalRecHit>>(iConfig.getParameter<edm::InputTag>("ecalrechitsEE")))
     {
 
     std::cout << ">>>> Inside SimpleNtuplizer::constructor" << std::endl;
@@ -282,8 +280,6 @@ SimpleNtuplizer::~SimpleNtuplizer() {
 
 
 
-
-
 //######################################
 //# Member functions
 //######################################
@@ -320,7 +316,8 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
     // iEvent.getByToken( caloClusterToken_, caloClusters_ );
 
 
-    iEvent.getByToken( ecalRecHitToken_, ecalRecHits_ );
+    iEvent.getByToken( ecalRecHitEBToken_, ecalRecHitsEB_ );
+    iEvent.getByToken( ecalRecHitEEToken_, ecalRecHitsEE_ );
 
 
     //######################################
@@ -360,6 +357,77 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
 
     // Fill in the event specific variables
     eventTree_->Fill();
+
+    }
+
+
+//######################################
+//# Count saturated crystal; also gets the energy in the seed crystal
+//######################################    
+
+void SimpleNtuplizer::SetSaturationVariables( edm::Ptr<reco::CaloCluster> seedCluster, bool isEB, bool isElectron ){
+
+    DetId seedId                                            = seedCluster->seed();
+    std::vector< std::pair<DetId, float> > hitsAndFractions = seedCluster->hitsAndFractions();
+
+    DetId hitId;        // ID of the hit in the seedCluster
+    DetId ecalRecHitId; // ID of the hit in ecal -- to be compared with with hitId
+
+    bool isSaturated;
+    
+    // Written-to-tree variables
+    Int_t    N_SATURATEDXTALS  = 0;
+    bool     seedIsSaturated   = false;
+    Double_t seedCrystalEnergy = 0.0;
+
+    // Get the right ecalRecHits collection (different for barrel and encap)
+    edm::Handle<edm::SortedCollection<EcalRecHit>> ecalRecHits;
+    if (isEB) ecalRecHits = ecalRecHitsEB_ ;
+    else      ecalRecHits = ecalRecHitsEE_ ;
+
+    // Loop over all hits in the seedCluster
+    for (const std::pair<DetId, float> hitFractionPair : hitsAndFractions) {
+
+        // Get hitId
+        hitId    = std::get<0>(hitFractionPair);
+
+        // Loop over all hits in ecal, find the hit that corresponds to the hit in the seedCluster
+        for (const EcalRecHit &ecalRecHit : *ecalRecHits) {
+            
+            ecalRecHitId = ecalRecHit.detid();
+            if (!( ecalRecHitId == hitId )) continue;
+
+            isSaturated  = ecalRecHit.checkFlag( EcalRecHit::Flags::kSaturated );
+
+            // Increase the count of saturated crystals
+            if (isSaturated) N_SATURATEDXTALS++;
+
+            // Check if this hit concerns the seed of the seedCluster
+            if ( ecalRecHitId == seedId ){
+                seedIsSaturated   = isSaturated;
+                seedCrystalEnergy = ecalRecHit.energy();
+                }
+            }
+
+        }
+
+
+    if (seedCrystalEnergy == 0.0){
+        std::cout << "  WARNING: Seed crystal energy is 0.0" << std::endl;
+        }
+
+
+    // Arrange output -- depends on type of particle
+    if (isElectron){
+        N_SATURATEDXTALS_e  = N_SATURATEDXTALS ;
+        seedIsSaturated_e   = seedIsSaturated ;
+        seedCrystalEnergy_e = seedCrystalEnergy ;
+        }
+    else {
+        N_SATURATEDXTALS_p  = N_SATURATEDXTALS ;
+        seedIsSaturated_p   = seedIsSaturated ;
+        seedCrystalEnergy_p = seedCrystalEnergy ;
+        }
 
     }
 
