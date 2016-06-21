@@ -176,18 +176,37 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     // <<<< Only this part (the coordinate variables) needs to be uniformized with the photon tree
     //      The rest should be the same
 
-    // These for EB electrons
-    electronTree_->Branch( "scSeedCryEta",                  &cryEtaCoordinate_e );         
-    electronTree_->Branch( "scSeedCryPhi",                  &cryPhiCoordinate_e );         
-    electronTree_->Branch( "scSeedCryIetaV2",               &iEtaCoordinate_e );
-    electronTree_->Branch( "scSeedCryIphiV2",               &iPhiCoordinate_e );
+    // EB
+    electronTree_->Branch( "cryEtaCoordinate",            &cryEtaCoordinate_e      );
+    electronTree_->Branch( "cryPhiCoordinate",            &cryPhiCoordinate_e      );
+    electronTree_->Branch( "iEtaCoordinate",              &iEtaCoordinate_e        );
+    electronTree_->Branch( "iPhiCoordinate",              &iPhiCoordinate_e        );
+    electronTree_->Branch( "iEtaMod5",                    &iEtaMod5_e              );
+    electronTree_->Branch( "iPhiMod2",                    &iPhiMod2_e              );
+    electronTree_->Branch( "iEtaMod20",                   &iEtaMod20_e             );
+    electronTree_->Branch( "iPhiMod20",                   &iPhiMod20_e             );
+    
+    // EE
+    electronTree_->Branch( "cryXCoordinate",              &cryXCoordinate_e        );
+    electronTree_->Branch( "cryYCoordinate",              &cryYCoordinate_e        );
+    electronTree_->Branch( "iXCoordinate",                &iXCoordinate_e          );
+    electronTree_->Branch( "iYCoordinate",                &iYCoordinate_e          );
+    electronTree_->Branch( "scPreshowerEnergy",           &preshowerEnergy_e );
+    electronTree_->Branch( "preshowerEnergyPlane1",       &preshowerEnergyPlane1_e );
+    electronTree_->Branch( "preshowerEnergyPlane2",       &preshowerEnergyPlane2_e );
 
-    // These for EE electrons
-    electronTree_->Branch( "scSeedCryIxV2",                 &iXCoordinate_e );         
-    electronTree_->Branch( "scSeedCryIyV2",                 &iYCoordinate_e );         
-    electronTree_->Branch( "scPreshowerEnergy",             &preshowerEnergy_e ); // <-- Also saved for EB
-    electronTree_->Branch( "scSeedCryX",                    &cryXCoordinate_e );
-    electronTree_->Branch( "scSeedCryY",                    &cryYCoordinate_e );
+    // // These for EB electrons
+    // electronTree_->Branch( "scSeedCryEta",                  &cryEtaCoordinate_e );         
+    // electronTree_->Branch( "scSeedCryPhi",                  &cryPhiCoordinate_e );         
+    // electronTree_->Branch( "scSeedCryIetaV2",               &iEtaCoordinate_e );
+    // electronTree_->Branch( "scSeedCryIphiV2",               &iPhiCoordinate_e );
+
+    // // These for EE electrons
+    // electronTree_->Branch( "scSeedCryIxV2",                 &iXCoordinate_e );         
+    // electronTree_->Branch( "scSeedCryIyV2",                 &iYCoordinate_e );         
+    // electronTree_->Branch( "scPreshowerEnergy",             &preshowerEnergy_e );
+    // electronTree_->Branch( "scSeedCryX",                    &cryXCoordinate_e );
+    // electronTree_->Branch( "scSeedCryY",                    &cryYCoordinate_e );
 
     // (end of coordinate variables) >>>>
     
@@ -210,17 +229,18 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     electronTree_->Branch( "genPdgId",                      &genPdgId_e       );
     electronTree_->Branch( "genStatus",                     &genStatus_e      );
 
+    // T&P
+    electronTree_->Branch( "mll",                           &tp_mll );
+    electronTree_->Branch( "tagpt",                         &tp_tagpt );
+    electronTree_->Branch( "tageta",                        &tp_tageta );
+
+    // Ep variables - Only for electrons
     electronTree_->Branch( "trkMomentum",                   &trkMomentum_e );
     electronTree_->Branch( "trkMomentumError",              &trkMomentumError_e );
     electronTree_->Branch( "trkMomentumRelError",           &trkMomentumRelError_e );
     electronTree_->Branch( "eleEcalDriven",                 &ecalDriven_e );
     electronTree_->Branch( "eleTrackerDriven",              &trackerDriven_e );
     electronTree_->Branch( "eleClass",                      &classification_e );
-    
-    // T&P
-    electronTree_->Branch( "mll",                           &tp_mll );
-    electronTree_->Branch( "tagpt",                         &tp_tagpt );
-    electronTree_->Branch( "tageta",                        &tp_tageta );
 
 
     //######################################
@@ -316,32 +336,41 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     photonTree_->Branch( "clusterDEtaToSeed",             &clusterDEtaToSeed_p );
 
 
-    // EB coordinate variables
-    photonTree_->Branch( "iEtaCoordinate",                &iEtaCoordinate_p         );
-    photonTree_->Branch( "iPhiCoordinate",                &iPhiCoordinate_p         );
-    photonTree_->Branch( "iEtaMod5",                      &iEtaMod5_p               );
-    photonTree_->Branch( "iPhiMod2",                      &iPhiMod2_p               );
-    photonTree_->Branch( "iEtaMod20",                     &iEtaMod20_p              );
-    photonTree_->Branch( "iPhiMod20",                     &iPhiMod20_p              );
-    // EE coordinate variables
-    photonTree_->Branch( "preshowerEnergyPlane1",         &preshowerEnergyPlane1_p  );
-    photonTree_->Branch( "preshowerEnergyPlane2",         &preshowerEnergyPlane2_p  );
-    photonTree_->Branch( "iXCoordinate",                  &iXCoordinate_p           );
-    photonTree_->Branch( "iYCoordinate",                  &iYCoordinate_p           );
-    photonTree_->Branch( "scPreshowerEnergy",             &preshowerEnergy_p   );
+    // // EB coordinate variables
+    // photonTree_->Branch( "iEtaCoordinate",                &iEtaCoordinate_p         );
+    // photonTree_->Branch( "iPhiCoordinate",                &iPhiCoordinate_p         );
+    // photonTree_->Branch( "iEtaMod5",                      &iEtaMod5_p               );
+    // photonTree_->Branch( "iPhiMod2",                      &iPhiMod2_p               );
+    // photonTree_->Branch( "iEtaMod20",                     &iEtaMod20_p              );
+    // photonTree_->Branch( "iPhiMod20",                     &iPhiMod20_p              );
+    // // EE coordinate variables
+    // photonTree_->Branch( "preshowerEnergyPlane1",         &preshowerEnergyPlane1_p  );
+    // photonTree_->Branch( "preshowerEnergyPlane2",         &preshowerEnergyPlane2_p  );
+    // photonTree_->Branch( "iXCoordinate",                  &iXCoordinate_p           );
+    // photonTree_->Branch( "iYCoordinate",                  &iYCoordinate_p           );
+    // photonTree_->Branch( "scPreshowerEnergy",             &preshowerEnergy_p   );
 
 
+    // EB
+    photonTree_->Branch( "cryEtaCoordinate",            &cryEtaCoordinate_p      );
+    photonTree_->Branch( "cryPhiCoordinate",            &cryPhiCoordinate_p      );
+    photonTree_->Branch( "iEtaCoordinate",              &iEtaCoordinate_p        );
+    photonTree_->Branch( "iPhiCoordinate",              &iPhiCoordinate_p        );
+    photonTree_->Branch( "iEtaMod5",                    &iEtaMod5_p              );
+    photonTree_->Branch( "iPhiMod2",                    &iPhiMod2_p              );
+    photonTree_->Branch( "iEtaMod20",                   &iEtaMod20_p             );
+    photonTree_->Branch( "iPhiMod20",                   &iPhiMod20_p             );
+    
+    // EE
+    photonTree_->Branch( "cryXCoordinate",              &cryXCoordinate_p        );
+    photonTree_->Branch( "cryYCoordinate",              &cryYCoordinate_p        );
+    photonTree_->Branch( "iXCoordinate",                &iXCoordinate_p          );
+    photonTree_->Branch( "iYCoordinate",                &iYCoordinate_p          );
+    photonTree_->Branch( "scPreshowerEnergy",           &preshowerEnergy_p );
+    photonTree_->Branch( "preshowerEnergyPlane1",       &preshowerEnergyPlane1_p );
+    photonTree_->Branch( "preshowerEnergyPlane2",       &preshowerEnergyPlane2_p );
 
-    // 
-    // Last minute additions: corrections
-    // photonTree_->Branch( "scEcalEnergy",              &scEcalEnergy_p            );
-    // photonTree_->Branch( "scEcalEnergyError",         &scEcalEnergyError_p       );
-    // photonTree_->Branch( "phoEcalEnergy",             &phoEcalEnergy_p           );
-    // photonTree_->Branch( "phoEcalEnergyError",        &phoEcalEnergyError_p      );
-    // photonTree_->Branch( "regression1Energy",         &regression1Energy_p       );
-    // photonTree_->Branch( "regression1EnergyError",    &regression1EnergyError_p  );
-    // photonTree_->Branch( "regression2Energy",         &regression2Energy_p       );
-    // photonTree_->Branch( "regression2EnergyError",    &regression2EnergyError_p  );
+    // Corrected energy from previous regression
     photonTree_->Branch( "corrEnergy74X",                 &corrEnergy74X_p );
     photonTree_->Branch( "corrEnergy74XError",            &corrEnergy74XError_p );
 

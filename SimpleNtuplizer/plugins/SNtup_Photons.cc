@@ -141,8 +141,8 @@ void SimpleNtuplizer::setPhotonVariables(
     // regression1EnergyError_p  = photon.energyCorrections().regression1EnergyError ;
     // regression2Energy_p       = photon.energyCorrections().regression2Energy ;
     // regression2EnergyError_p  = photon.energyCorrections().regression2EnergyError ;
-    corrEnergy74X_e       = photon.energy();
-    corrEnergy74XError_e  = photon.energyCorrections().regression1EnergyError ;
+    corrEnergy74X_p       = photon.energy();
+    corrEnergy74XError_p  = photon.energyCorrections().regression1EnergyError ;
 
 
     // Saturation variables
@@ -222,45 +222,110 @@ void SimpleNtuplizer::setPhotonVariables(
     // =====================================
     // Coordinate variables
 
-    // Clear the std::vectors from last photon
+    // // Clear the std::vectors from last photon
+    // // EB
+    // iEtaCoordinate_p         .clear() ;
+    // iPhiCoordinate_p         .clear() ;
+    // iEtaMod5_p               .clear() ;
+    // iPhiMod2_p               .clear() ;
+    // iEtaMod20_p              .clear() ;
+    // iPhiMod20_p              .clear() ;
+    // // EE
+    // preshowerEnergyPlane1_p  .clear() ;
+    // preshowerEnergyPlane2_p  .clear() ;
+    // iXCoordinate_p           .clear() ;
+    // iYCoordinate_p           .clear() ;
+
+    // if ( photon.isEB() ) {
+        
+    //     EBDetId ebseedid( seedCluster->seed());
+        
+    //     int ieta = ebseedid.ieta();
+    //     int iphi = ebseedid.iphi();
+    //     int signieta = ieta > 0 ? +1 : -1; /// this is 1*abs(ieta)/ieta in original training
+
+    //     iEtaCoordinate_p .push_back( ieta );
+    //     iPhiCoordinate_p .push_back( iphi );
+    //     iEtaMod5_p       .push_back( (ieta-signieta)%5 );
+    //     iPhiMod2_p       .push_back( (iphi-1)%2 );
+    //     iEtaMod20_p      .push_back( abs(ieta)<=25 ? ieta-signieta : (ieta - 26*signieta) % 20  );
+    //     iPhiMod20_p      .push_back( (iphi-1)%20 );
+    //     }
+    
+    // else {
+        
+    //     EEDetId eeseedid( seedCluster->seed());
+
+    //     preshowerEnergyPlane1_p  .push_back( superCluster->preshowerEnergyPlane1() / rawEnergy );
+    //     preshowerEnergyPlane2_p  .push_back( superCluster->preshowerEnergyPlane2() / rawEnergy );
+    //     iXCoordinate_p           .push_back( eeseedid.ix() );
+    //     iYCoordinate_p           .push_back( eeseedid.iy() );
+    //     }
+
+
+    // Open up temporary variables
+    int iPhi, iEta, iX, iY; float cryPhi, cryEta, cryX, cryY, dummy;
+    EcalClusterLocal ecalLocal;
+
+    // Clear the std::vectors from last electron
     // EB
+    cryEtaCoordinate_p       .clear();
+    cryPhiCoordinate_p       .clear();
     iEtaCoordinate_p         .clear() ;
     iPhiCoordinate_p         .clear() ;
     iEtaMod5_p               .clear() ;
     iPhiMod2_p               .clear() ;
     iEtaMod20_p              .clear() ;
     iPhiMod20_p              .clear() ;
+
+
     // EE
-    preshowerEnergyPlane1_p  .clear() ;
-    preshowerEnergyPlane2_p  .clear() ;
+    cryXCoordinate_p         .clear();
+    cryYCoordinate_p         .clear();
     iXCoordinate_p           .clear() ;
     iYCoordinate_p           .clear() ;
+    preshowerEnergyPlane1_p  .clear() ;
+    preshowerEnergyPlane2_p  .clear() ;
 
-    if ( photon.isEB() ) {
-        
-        EBDetId ebseedid( seedCluster->seed());
-        
-        int ieta = ebseedid.ieta();
-        int iphi = ebseedid.iphi();
-        int signieta = ieta > 0 ? +1 : -1; /// this is 1*abs(ieta)/ieta in original training
 
-        iEtaCoordinate_p .push_back( ieta );
-        iPhiCoordinate_p .push_back( iphi );
-        iEtaMod5_p       .push_back( (ieta-signieta)%5 );
-        iPhiMod2_p       .push_back( (iphi-1)%2 );
-        iEtaMod20_p      .push_back( abs(ieta)<=25 ? ieta-signieta : (ieta - 26*signieta) % 20  );
-        iPhiMod20_p      .push_back( (iphi-1)%20 );
+
+    if( photon.isEB() ){
+        
+        ecalLocal.localCoordsEB( *superCluster->seed(), iSetup,
+                                  cryEta, cryPhi, iEta, iPhi, dummy, dummy );
+
+        iEtaCoordinate_p   .push_back( iEta );
+        iPhiCoordinate_p   .push_back( iPhi );
+        cryEtaCoordinate_p .push_back( cryEta );
+        cryPhiCoordinate_p .push_back( cryPhi );
+
+
+        int signiEta = iEta > 0 ? +1 : -1; /// this is 1*abs(ieta)/ieta in original training
+
+        iEtaMod5_p       .push_back( (iEta-signiEta)%5 );
+        iPhiMod2_p       .push_back( (iPhi-1)%2 );
+        iEtaMod20_p      .push_back( abs(iEta)<=25 ? iEta-signiEta : (iEta - 26*signiEta) % 20  );
+        iPhiMod20_p      .push_back( (iPhi-1)%20 );
+
         }
-    
-    else {
+
+
+    else{
         
-        EEDetId eeseedid( seedCluster->seed());
+        ecalLocal.localCoordsEE( *superCluster->seed(), iSetup,
+                                  cryX, cryY, iX, iY, dummy, dummy );
+        
+        iXCoordinate_p     .push_back( iX );
+        iYCoordinate_p     .push_back( iY );
+        cryXCoordinate_p   .push_back( cryX );
+        cryYCoordinate_p   .push_back( cryY );
 
         preshowerEnergyPlane1_p  .push_back( superCluster->preshowerEnergyPlane1() / rawEnergy );
         preshowerEnergyPlane2_p  .push_back( superCluster->preshowerEnergyPlane2() / rawEnergy );
-        iXCoordinate_p           .push_back( eeseedid.ix() );
-        iYCoordinate_p           .push_back( eeseedid.iy() );
+
         }
+
+
 
     // Write class variables to the output tree
     photonTree_->Fill();

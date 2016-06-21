@@ -24,8 +24,13 @@ readFiles.extend([
     # This is an AODSIM example in 80X
     # 'file:/nfs-5/users/rclsa/RegressionTraining/TreeMaker/CMSSW_8_0_9/src/SimpleFlatTreeProducer/SimpleNtuplizer/example/SingleElectron_Run2016B_PromptReco_v2.root',
     # 'file:/nfs-5/users/rclsa/RegressionTraining/TreeMaker/CMSSW_8_0_9/src/SimpleFlatTreeProducer/SimpleNtuplizer/example/DYToEE_NNPDF30_13TeV_powheg_pythia8.root'
-    'file:/afs/cern.ch/work/r/rcoelhol/public/ExampleAODs/SingleElectron_Run2016B_PromptReco_v2.root',
-    'file:/afs/cern.ch/work/r/rcoelhol/public/ExampleAODs/DYToEE_NNPDF30_13TeV_powheg_pythia8.root',
+    
+    # 'file:/afs/cern.ch/work/r/rcoelhol/public/ExampleAODs/SingleElectron_Run2016B_PromptReco_v2.root',
+    # 'file:/afs/cern.ch/work/r/rcoelhol/public/ExampleAODs/DYToEE_NNPDF30_13TeV_powheg_pythia8.root',
+
+    # 'file:/afs/cern.ch/work/t/tklijnsm/EGM/AODexamples/DoubleElectron_AODSIM_example.root',
+    'file:/afs/cern.ch/work/t/tklijnsm/EGM/AODexamples/DoublePhoton_AODSIM_example.root',
+
     ])
 secFiles.extend([
     ])
@@ -45,7 +50,7 @@ process.een_analyzer = cms.EDAnalyzer(
     'SimpleNtuplizer',
     vertices            = cms.InputTag("offlinePrimaryVertices"),
     electrons           = cms.InputTag("gedGsfElectrons"),
-    photons             = cms.InputTag("photons"),
+    photons             = cms.InputTag("gedPhotons"),
     rho                 = cms.InputTag("fixedGridRhoFastjetAll"),
     genparticles        = cms.InputTag("genParticles"),
     # caloclusters        = cms.InputTag("caloclusters"),
@@ -59,7 +64,10 @@ process.een_analyzer = cms.EDAnalyzer(
     HLTObjTag           = cms.InputTag("hltTriggerSummaryAOD","","HLT"),
     ElecTrig            = cms.untracked.vstring("HLT_Ele27_eta2p1_WPLoose_Gsf_v*"),
     ElecFilt            = cms.untracked.vstring("hltEle27erWPLooseGsfTrackIsoFilter"),
-    isData              = cms.untracked.bool(True)
+    
+    # isData              = cms.untracked.bool(True)
+    isData              = cms.untracked.bool(False)
+
     )
 
 

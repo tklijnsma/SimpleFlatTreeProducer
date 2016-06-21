@@ -57,10 +57,7 @@
 
 // Needed for saturation variables
 #include "DataFormats/CaloRecHit/interface/CaloCluster.h"
-
-// #include "DataFormats/CaloRecHit/interface/CaloRecHit.h"
 #include "DataFormats/EcalRecHit/interface/EcalRecHit.h"
-
 
 // To calculate the 2x5 variables for electrons
 #include "FWCore/Framework/interface/ESHandle.h"
@@ -84,10 +81,8 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         void setElectronVariables( const reco::GsfElectron&, const edm::Event&, const edm::EventSetup& );
         void setPhotonVariables(   const reco::Photon&,      const edm::Event&, const edm::EventSetup& );
 
-	void findTag( const reco::RecoCandidate& object, const edm::Event& iEvent, const edm::EventSetup& iSetup );
+        void findTag( const reco::RecoCandidate& object, const edm::Event& iEvent, const edm::EventSetup& iSetup );
 
-        // void matchPhotonToGenParticle( const reco::PhotonCollection&, const reco::GenParticleCollection& );
-        // void matchPhotonToGenParticle( const edm::Handle<reco::PhotonCollection>, const edm::Handle<reco::GenParticleCollection> );
         bool matchPhotonToGenParticle( const reco::Photon& );
         bool matchElectronToGenParticle( const reco::GsfElectron& );
 
@@ -247,13 +242,13 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         // EB
         std::vector<Int_t>   iEtaCoordinate_e;
         std::vector<Int_t>   iPhiCoordinate_e;
-        std::vector<Int_t>   cryEtaCoordinate_e;
-        std::vector<Int_t>   cryPhiCoordinate_e;
+        std::vector<Float_t> cryEtaCoordinate_e;
+        std::vector<Float_t> cryPhiCoordinate_e;
         // EE
         std::vector<Int_t>   iXCoordinate_e;
         std::vector<Int_t>   iYCoordinate_e;
-        std::vector<Int_t>   cryXCoordinate_e;
-        std::vector<Int_t>   cryYCoordinate_e;
+        std::vector<Float_t> cryXCoordinate_e;
+        std::vector<Float_t> cryYCoordinate_e;
 
         // Additional coordinate variables for photon
         std::vector<Int_t>   iEtaMod5_e;
@@ -399,13 +394,13 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         // EB
         std::vector<Int_t>   iEtaCoordinate_p;
         std::vector<Int_t>   iPhiCoordinate_p;
-        std::vector<Int_t>   cryEtaCoordinate_p;
-        std::vector<Int_t>   cryPhiCoordinate_p;
+        std::vector<Float_t> cryEtaCoordinate_p;
+        std::vector<Float_t> cryPhiCoordinate_p;
         // EE
         std::vector<Int_t>   iXCoordinate_p;
         std::vector<Int_t>   iYCoordinate_p;
-        std::vector<Int_t>   cryXCoordinate_p;
-        std::vector<Int_t>   cryYCoordinate_p;
+        std::vector<Float_t> cryXCoordinate_p;
+        std::vector<Float_t> cryYCoordinate_p;
 
         // Additional coordinate variables for photon
         std::vector<Int_t>   iEtaMod5_p;

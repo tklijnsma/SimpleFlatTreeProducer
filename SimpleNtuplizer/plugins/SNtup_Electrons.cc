@@ -231,16 +231,28 @@ void SimpleNtuplizer::setElectronVariables(
     int iPhi, iEta, iX, iY; float cryPhi, cryEta, cryX, cryY, dummy;
     EcalClusterLocal ecalLocal;
 
-    // Clear up values from previous electron
-    iEtaCoordinate_e.clear();
-    iPhiCoordinate_e.clear();
-    cryEtaCoordinate_e.clear();
-    cryPhiCoordinate_e.clear();
 
-    iXCoordinate_e.clear();
-    iYCoordinate_e.clear();
-    cryXCoordinate_e.clear();
-    cryYCoordinate_e.clear();
+    // Clear the std::vectors from last electron
+    // EB
+    cryEtaCoordinate_e       .clear();
+    cryPhiCoordinate_e       .clear();
+    iEtaCoordinate_e         .clear() ;
+    iPhiCoordinate_e         .clear() ;
+    iEtaMod5_e               .clear() ;
+    iPhiMod2_e               .clear() ;
+    iEtaMod20_e              .clear() ;
+    iPhiMod20_e              .clear() ;
+
+
+    // EE
+    cryXCoordinate_e         .clear();
+    cryYCoordinate_e         .clear();
+    iXCoordinate_e           .clear() ;
+    iYCoordinate_e           .clear() ;
+    preshowerEnergyPlane1_e  .clear() ;
+    preshowerEnergyPlane2_e  .clear() ;
+
+
 
     if( electron.isEB() ){
         
@@ -251,7 +263,17 @@ void SimpleNtuplizer::setElectronVariables(
         iPhiCoordinate_e   .push_back( iPhi );
         cryEtaCoordinate_e .push_back( cryEta );
         cryPhiCoordinate_e .push_back( cryPhi );
+
+
+        int signiEta = iEta > 0 ? +1 : -1; /// this is 1*abs(ieta)/ieta in original training
+
+        iEtaMod5_e       .push_back( (iEta-signiEta)%5 );
+        iPhiMod2_e       .push_back( (iPhi-1)%2 );
+        iEtaMod20_e      .push_back( abs(iEta)<=25 ? iEta-signiEta : (iEta - 26*signiEta) % 20  );
+        iPhiMod20_e      .push_back( (iPhi-1)%20 );
+
         }
+
 
     else{
         
@@ -262,6 +284,10 @@ void SimpleNtuplizer::setElectronVariables(
         iYCoordinate_e     .push_back( iY );
         cryXCoordinate_e   .push_back( cryX );
         cryYCoordinate_e   .push_back( cryY );
+
+        preshowerEnergyPlane1_e  .push_back( superCluster->preshowerEnergyPlane1() / rawEnergy );
+        preshowerEnergyPlane2_e  .push_back( superCluster->preshowerEnergyPlane2() / rawEnergy );
+
         }
 
 
@@ -332,7 +358,7 @@ bool SimpleNtuplizer::matchElectronToGenParticle(
 
     for (const reco::GenParticle &genParticle : *genParticles_) {
 
-        // Continue if pdgId is not 22 or status is not 1
+        // Continue if pdgId is not 11 or status is not 1
         if(!( abs(genParticle.pdgId())==11 && genParticle.status()==1 ))
             continue;
 
