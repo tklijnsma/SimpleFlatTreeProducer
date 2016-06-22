@@ -22,14 +22,12 @@ secFiles = cms.untracked.vstring()
 
 readFiles.extend([
     # This is an AODSIM example in 80X
-    # 'file:/nfs-5/users/rclsa/RegressionTraining/TreeMaker/CMSSW_8_0_9/src/SimpleFlatTreeProducer/SimpleNtuplizer/example/SingleElectron_Run2016B_PromptReco_v2.root',
-    # 'file:/nfs-5/users/rclsa/RegressionTraining/TreeMaker/CMSSW_8_0_9/src/SimpleFlatTreeProducer/SimpleNtuplizer/example/DYToEE_NNPDF30_13TeV_powheg_pythia8.root'
-    
+    # 'file:/nfs-5/users/rclsa/RegressionTraining/TreeMaker/example/SingleElectron_Run2016B_PromptReco_v2.root',
+    'file:/nfs-5/users/rclsa/RegressionTraining/TreeMaker/example/DYToEE_NNPDF30_13TeV_powheg_pythia8.root'    
     # 'file:/afs/cern.ch/work/r/rcoelhol/public/ExampleAODs/SingleElectron_Run2016B_PromptReco_v2.root',
     # 'file:/afs/cern.ch/work/r/rcoelhol/public/ExampleAODs/DYToEE_NNPDF30_13TeV_powheg_pythia8.root',
-
     # 'file:/afs/cern.ch/work/t/tklijnsm/EGM/AODexamples/DoubleElectron_AODSIM_example.root',
-    'file:/afs/cern.ch/work/t/tklijnsm/EGM/AODexamples/DoublePhoton_AODSIM_example.root',
+    # 'file:/afs/cern.ch/work/t/tklijnsm/EGM/AODexamples/DoublePhoton_AODSIM_example.root',
 
     ])
 secFiles.extend([
@@ -55,7 +53,7 @@ process.een_analyzer = cms.EDAnalyzer(
     genparticles        = cms.InputTag("genParticles"),
     PUInfoInputTag      = cms.InputTag("addPileupInfo"),
     genEvtInfoInputTag  = cms.InputTag("generator"),
-
+        
     # caloclusters        = cms.InputTag("caloclusters"),
     # Saturation
     ecalrechitsEB       = cms.InputTag("reducedEcalRecHitsEB"),

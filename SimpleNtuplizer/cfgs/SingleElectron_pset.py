@@ -23,11 +23,9 @@ secFiles = cms.untracked.vstring()
 readFiles.extend([
     # This is an AODSIM example in 80X
     # 'file:/nfs-5/users/rclsa/RegressionTraining/TreeMaker/CMSSW_8_0_9/src/SimpleFlatTreeProducer/SimpleNtuplizer/example/SingleElectron_Run2016B_PromptReco_v2.root',
-    # 'file:/nfs-5/users/rclsa/RegressionTraining/TreeMaker/CMSSW_8_0_9/src/SimpleFlatTreeProducer/SimpleNtuplizer/example/DYToEE_NNPDF30_13TeV_powheg_pythia8.root'
-    
+    # 'file:/nfs-5/users/rclsa/RegressionTraining/TreeMaker/CMSSW_8_0_9/src/SimpleFlatTreeProducer/SimpleNtuplizer/example/DYToEE_NNPDF30_13TeV_powheg_pythia8.root'    
     # 'file:/afs/cern.ch/work/r/rcoelhol/public/ExampleAODs/SingleElectron_Run2016B_PromptReco_v2.root',
     # 'file:/afs/cern.ch/work/r/rcoelhol/public/ExampleAODs/DYToEE_NNPDF30_13TeV_powheg_pythia8.root',
-
     # 'file:/afs/cern.ch/work/t/tklijnsm/EGM/AODexamples/DoubleElectron_AODSIM_example.root',
     'file:/afs/cern.ch/work/t/tklijnsm/EGM/AODexamples/DoublePhoton_AODSIM_example.root',
 
@@ -69,7 +67,7 @@ process.een_analyzer = cms.EDAnalyzer(
     ElecFilt            = cms.untracked.vstring("hltEle27erWPLooseGsfTrackIsoFilter"),
     
     # isData              = cms.untracked.bool(True)
-    isData              = cms.untracked.bool(False)
+    isData              = cms.untracked.bool(True)
 
     )
 
