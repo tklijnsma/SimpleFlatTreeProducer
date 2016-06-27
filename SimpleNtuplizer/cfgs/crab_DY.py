@@ -2,7 +2,7 @@ from CRABClient.UserUtilities import config
 config = config()
 
 # 20 June: First test of saturation variables
-config.General.requestName              = 'DYToEE_NNPDF30_TreeMaker_v2'
+config.General.requestName              = 'DYToEE_NNPDF30_TreeMaker_v3'
 
 config.General.workArea                 = './'
 config.General.transferOutputs          = True

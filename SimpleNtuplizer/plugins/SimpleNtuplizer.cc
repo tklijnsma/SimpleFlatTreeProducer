@@ -237,8 +237,10 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
 
     // T&P
     electronTree_->Branch( "mll",                           &tp_mll );
+    electronTree_->Branch( "ptll",                          &tp_ptll );
     electronTree_->Branch( "tagpt",                         &tp_tagpt );
     electronTree_->Branch( "tageta",                        &tp_tageta );
+    electronTree_->Branch( "tagphi",                        &tp_tagphi );
 
     // Ep variables - Only for electrons
     electronTree_->Branch( "trkMomentum",                   &trkMomentum_e );
@@ -399,8 +401,10 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
 
     // T&P
     photonTree_->Branch( "mll",                           &tp_mll );
+    photonTree_->Branch( "ptll",                          &tp_ptll );
     photonTree_->Branch( "tagpt",                         &tp_tagpt );
     photonTree_->Branch( "tageta",                        &tp_tageta );
+    photonTree_->Branch( "tagphi",                        &tp_tagphi );
 
     }
 
@@ -505,7 +509,7 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
     nElectrons_ = 0;
     nElectronsMatched_ = 0;
     for (const reco::GsfElectron &el : *electrons) {
-        findTag             ( el, iEvent, iSetup );
+        findTag             ( el, (el.superCluster()->rawEnergy()/el.energy()), iEvent, iSetup );
         setElectronVariables( el, iEvent, iSetup );
 	
         }
@@ -514,7 +518,7 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
     nPhotons_ = 0;
     nPhotonsMatched_ = 0;
     for (const reco::Photon &photon : *photons) {
-        findTag           ( photon, iEvent, iSetup );
+        findTag           ( photon, (photon.superCluster()->rawEnergy()/photon.energy()), iEvent, iSetup );
         setPhotonVariables( photon, iEvent, iSetup );
         }
 

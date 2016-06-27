@@ -83,7 +83,7 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         void setElectronVariables( const reco::GsfElectron&, const edm::Event&, const edm::EventSetup& );
         void setPhotonVariables(   const reco::Photon&,      const edm::Event&, const edm::EventSetup& );
 
-        void findTag( const reco::RecoCandidate& object, const edm::Event& iEvent, const edm::EventSetup& iSetup );
+        void findTag( const reco::RecoCandidate& object, float corrToRaw, const edm::Event& iEvent, const edm::EventSetup& iSetup );
 
         bool matchPhotonToGenParticle( const reco::Photon& );
         bool matchElectronToGenParticle( const reco::GsfElectron& );
@@ -459,9 +459,10 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
 	
         // T&P variables
     	Float_t tp_mll;
+	Float_t tp_ptll;
     	Float_t tp_tagpt;
     	Float_t tp_tageta;
-        
+    	Float_t tp_tagphi;
 	
 };
 
