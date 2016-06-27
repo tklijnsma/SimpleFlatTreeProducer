@@ -32,7 +32,9 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     photonToken_(consumes<reco::PhotonCollection>(iConfig.getParameter<edm::InputTag>("photons"))),
     genParticleToken_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("genparticles"))),
     rhoToken_(consumes<double> (iConfig.getParameter<edm::InputTag>("rho"))),
-    
+    PUInfoToken_(consumes<std::vector<PileupSummaryInfo> >(iConfig.getParameter<edm::InputTag>("PUInfoInputTag"))),
+    genEvtInfoToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("genEvtInfoInputTag"))),
+
     // Saturation
     ecalRecHitEBToken_(consumes<edm::SortedCollection<EcalRecHit>>(iConfig.getParameter<edm::InputTag>("ecalrechitsEB"))),
     ecalRecHitEEToken_(consumes<edm::SortedCollection<EcalRecHit>>(iConfig.getParameter<edm::InputTag>("ecalrechitsEE"))),
@@ -72,6 +74,8 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     eventTree_->Branch( "eventNumber",                   &eventNumber_          );
     eventTree_->Branch( "luminosityBlock",               &luminosityBlock_      );
     eventTree_->Branch( "run",                           &run_                  );
+    eventTree_->Branch( "weight",                        &weight_               );
+    eventTree_->Branch( "trueNumInteractions",           &trueNumInteractions_   );
 
 
     //######################################
@@ -88,6 +92,8 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     electronTree_->Branch( "eventNumber",                   &eventNumber_          );
     electronTree_->Branch( "luminosityBlock",               &luminosityBlock_      );
     electronTree_->Branch( "run",                           &run_                  );
+    electronTree_->Branch( "weight",                        &weight_               );
+    electronTree_->Branch( "trueNumInteractions",           &trueNumInteractions_   );
 
     electronTree_->Branch( "pt",                            &pt_e       );
     electronTree_->Branch( "scIsEB",                        &isEB_e     );
@@ -231,8 +237,10 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
 
     // T&P
     electronTree_->Branch( "mll",                           &tp_mll );
+    electronTree_->Branch( "ptll",                          &tp_ptll );
     electronTree_->Branch( "tagpt",                         &tp_tagpt );
     electronTree_->Branch( "tageta",                        &tp_tageta );
+    electronTree_->Branch( "tagphi",                        &tp_tagphi );
 
     // Ep variables - Only for electrons
     electronTree_->Branch( "trkMomentum",                   &trkMomentum_e );
@@ -253,6 +261,8 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     photonTree_->Branch( "eventNumber",                   &eventNumber_          );
     photonTree_->Branch( "luminosityBlock",               &luminosityBlock_      );
     photonTree_->Branch( "run",                           &run_                  );
+    photonTree_->Branch( "weight",                        &weight_               );
+    photonTree_->Branch( "trueNumInteractions",           &trueNumInteractions_   );
 
     photonTree_->Branch( "pt",                            &pt_p       );
     photonTree_->Branch( "scIsEB",                        &isEB_p     );
@@ -391,8 +401,10 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
 
     // T&P
     photonTree_->Branch( "mll",                           &tp_mll );
+    photonTree_->Branch( "ptll",                          &tp_ptll );
     photonTree_->Branch( "tagpt",                         &tp_tagpt );
     photonTree_->Branch( "tageta",                        &tp_tageta );
+    photonTree_->Branch( "tagphi",                        &tp_tagphi );
 
     }
 
@@ -437,15 +449,16 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
     // Get GenParticle collection
     //   Definition moved --> class variable
     //   edm::Handle<reco::GenParticleCollection> genParticles;
-    iEvent.getByToken( genParticleToken_, genParticles_ );
     // iEvent.getByToken( caloClusterToken_, caloClusters_ );
 
     iEvent.getByToken( ecalRecHitEBToken_, ecalRecHitsEB_ );
     iEvent.getByToken( ecalRecHitEEToken_, ecalRecHitsEE_ );
 
-    if (!isData_)
+    if (!isData_) {
       iEvent.getByToken( genParticleToken_, genParticles_ );
-
+      iEvent.getByToken( PUInfoToken_,      puInfoH_ );
+      iEvent.getByToken( genEvtInfoToken_,  genEvtInfo_ );      
+    }
 
     // =====================================
     // Get geometry and topology (need for 2x5 variables only)
@@ -473,6 +486,16 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
     luminosityBlock_ = iEvent.id().luminosityBlock();
     run_             = iEvent.id().run();
 
+    if (!isData_) {
+      weight_ = genEvtInfo_->weight();
+      for (std::vector<PileupSummaryInfo>::const_iterator puinfo = puInfoH_->begin(); puinfo != puInfoH_->end(); ++puinfo) {
+	if (puinfo->getBunchCrossing() == 0) {
+	  trueNumInteractions_ = puinfo->getTrueNumInteractions();
+	  break;
+	}
+      }
+    }
+      
     // Determine number of primary vertices
     if (vertices->empty()) nPV_ = 0;
     else nPV_ = vertices->size();
@@ -486,7 +509,7 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
     nElectrons_ = 0;
     nElectronsMatched_ = 0;
     for (const reco::GsfElectron &el : *electrons) {
-        findTag             ( el, iEvent, iSetup );
+        findTag             ( el, (el.superCluster()->rawEnergy()/el.energy()), iEvent, iSetup );
         setElectronVariables( el, iEvent, iSetup );
 	
         }
@@ -495,7 +518,7 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
     nPhotons_ = 0;
     nPhotonsMatched_ = 0;
     for (const reco::Photon &photon : *photons) {
-        findTag           ( photon, iEvent, iSetup );
+        findTag           ( photon, (photon.superCluster()->rawEnergy()/photon.energy()), iEvent, iSetup );
         setPhotonVariables( photon, iEvent, iSetup );
         }
 

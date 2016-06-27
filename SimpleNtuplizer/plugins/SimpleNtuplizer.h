@@ -29,9 +29,10 @@
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
+#include "DataFormats/Common/interface/ValueMap.h"
 
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
-#include "DataFormats/Common/interface/ValueMap.h"
+#include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 
 #include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
@@ -49,6 +50,7 @@
 #include "DataFormats/EcalDetId/interface/EEDetId.h"
 
 #include "RecoEgamma/EgammaTools/interface/EcalClusterLocal.h"
+#include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 
 // For trigger
 #include "FWCore/Common/interface/TriggerNames.h"
@@ -81,7 +83,7 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         void setElectronVariables( const reco::GsfElectron&, const edm::Event&, const edm::EventSetup& );
         void setPhotonVariables(   const reco::Photon&,      const edm::Event&, const edm::EventSetup& );
 
-        void findTag( const reco::RecoCandidate& object, const edm::Event& iEvent, const edm::EventSetup& iSetup );
+        void findTag( const reco::RecoCandidate& object, float corrToRaw, const edm::Event& iEvent, const edm::EventSetup& iSetup );
 
         bool matchPhotonToGenParticle( const reco::Photon& );
         bool matchElectronToGenParticle( const reco::GsfElectron& );
@@ -109,7 +111,9 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         edm::EDGetTokenT<reco::PhotonCollection>      photonToken_;
         edm::EDGetTokenT<reco::GenParticleCollection> genParticleToken_;
         edm::EDGetTokenT<double>                      rhoToken_; 
-
+	edm::EDGetTokenT<std::vector<PileupSummaryInfo> > PUInfoToken_;
+	edm::EDGetTokenT<GenEventInfoProduct>             genEvtInfoToken_;
+	
         // Tokens for saturation variables
         edm::EDGetTokenT<edm::SortedCollection<EcalRecHit>> ecalRecHitEBToken_;
         edm::EDGetTokenT<edm::SortedCollection<EcalRecHit>> ecalRecHitEEToken_;
@@ -129,6 +133,8 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         edm::Handle<reco::GenParticleCollection>       genParticles_;
         edm::Handle<edm::SortedCollection<EcalRecHit>> ecalRecHitsEB_;
         edm::Handle<edm::SortedCollection<EcalRecHit>> ecalRecHitsEE_;
+	edm::Handle<std::vector<PileupSummaryInfo> >   puInfoH_;
+	edm::Handle<GenEventInfoProduct>               genEvtInfo_;
 
         // =====================================
         // Configuration parameters that are not tokens
@@ -150,7 +156,9 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         Int_t eventNumber_;
         Int_t luminosityBlock_;
         Int_t run_;
-
+	Float_t weight_;
+	Float_t trueNumInteractions_;
+	
         Int_t isMatched_ = 1; // Always 1 but it's there so old regression .root files can be ran
 
         Int_t nPV_;         // Number of reconstructed primary vertices
@@ -451,9 +459,10 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
 	
         // T&P variables
     	Float_t tp_mll;
+	Float_t tp_ptll;
     	Float_t tp_tagpt;
     	Float_t tp_tageta;
-        
+    	Float_t tp_tagphi;
 	
 };
 
