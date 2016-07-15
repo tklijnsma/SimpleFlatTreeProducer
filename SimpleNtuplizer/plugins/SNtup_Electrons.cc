@@ -298,6 +298,8 @@ void SimpleNtuplizer::setElectronVariables(
     trkMomentum_e          = electron.trackMomentumAtVtx().R();
     trkMomentumError_e     = electron.trackMomentumError();
     trkMomentumRelError_e  = electron.trackMomentumError() / electron.trackMomentumAtVtx().R();
+    trkEta_e               = electron.trackMomentumAtVtx().eta();
+    trkPhi_e               = electron.trackMomentumAtVtx().phi();
     ecalDriven_e           = electron.ecalDriven();
     trackerDriven_e        = electron.trackerDrivenSeed();
     classification_e       = int(electron.classification());

@@ -246,6 +246,8 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     electronTree_->Branch( "trkMomentum",                   &trkMomentum_e );
     electronTree_->Branch( "trkMomentumError",              &trkMomentumError_e );
     electronTree_->Branch( "trkMomentumRelError",           &trkMomentumRelError_e );
+    electronTree_->Branch( "trkEta",                        &trkEta_e );
+    electronTree_->Branch( "trkPhi",                        &trkPhi_e );
     electronTree_->Branch( "fbrem",                         &fbrem_e );
     electronTree_->Branch( "gsfchi2"           ,            &gsfchi2_e );
     electronTree_->Branch( "gsfndof",                       &gsfndof_e );
@@ -391,6 +393,8 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     photonTree_->Branch( "trkMomentum",                   &trkMomentum_p );
     photonTree_->Branch( "trkMomentumError",              &trkMomentumError_p );
     photonTree_->Branch( "trkMomentumRelError",           &trkMomentumRelError_p );
+    photonTree_->Branch( "trkEta",                        &trkEta_p );
+    photonTree_->Branch( "trkPhi",                        &trkPhi_p );
     
     // =====================================
     // Not used for training (but some still needed for e.g. cuts)

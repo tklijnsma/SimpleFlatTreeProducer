@@ -332,6 +332,8 @@ void SimpleNtuplizer::setPhotonVariables(
     if (!conversions.empty()) {
       nTracks_p = conversions.at(0)->nTracks();
       trkMomentum_p = conversions.at(0)->refittedPairMomentum().R();
+      trkEta_p = conversions.at(0)->refittedPairMomentum().eta();
+      trkPhi_p = conversions.at(0)->refittedPairMomentum().phi();
       auto tracks = conversions.at(0)->tracks();      
       trkMomentumError_p = 0;
       for (auto&& track:tracks) 
