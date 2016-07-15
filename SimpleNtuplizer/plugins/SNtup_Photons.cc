@@ -1,5 +1,7 @@
 #include "SimpleNtuplizer.h"
 
+using namespace std;
+
 // Function that actually reads values from the AODSIM input file
 void SimpleNtuplizer::setPhotonVariables(
         const reco::Photon& photon,
@@ -326,7 +328,21 @@ void SimpleNtuplizer::setPhotonVariables(
         }
 
 
-
+    auto conversions = photon.conversions();
+    if (!conversions.empty()) {
+      nTracks_p = conversions.at(0)->nTracks();
+      trkMomentum_p = conversions.at(0)->refittedPairMomentum().R();
+      auto tracks = conversions.at(0)->tracks();      
+      trkMomentumError_p = 0;
+      for (auto&& track:tracks) 
+	trkMomentumError_p += (track->ptError()*track->ptError()*cosh(track->eta())*cosh(track->eta()) + track->pt()*track->pt()*sinh(track->eta())*sinh(track->eta())*track->etaError()*track->etaError());
+      trkMomentumError_p = sqrt(trkMomentumError_p);
+    } else {
+      nTracks_p = 0;
+      trkMomentum_p = 0;
+      trkMomentumError_p = 9999;
+    }
+    
     // Write class variables to the output tree
     photonTree_->Fill();
 

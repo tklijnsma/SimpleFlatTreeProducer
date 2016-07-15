@@ -295,6 +295,9 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         Float_t ecalDriven_e;
         Float_t trackerDriven_e;
         Float_t classification_e;
+	Float_t fbrem_e;
+	Float_t gsfchi2_e;
+	Float_t gsfndof_e;
 
         Float_t genMatchdR_e;
         Float_t genMatchdE_e;
@@ -395,7 +398,7 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         Bool_t seedIsSaturated_p;
         Double_t seedCrystalEnergy_p;
 
-
+	
         // -----------------------------
         // Coordinate variables
 
@@ -438,6 +441,9 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         // -----------------------------
         // Ep variables (only for electron)
 
+	// -----------------------------
+	// Can we do E-p for photons?
+	Int_t nTracks_p;
         Float_t trkMomentum_p;
         Float_t trkMomentumError_p;
         Float_t trkMomentumRelError_p;

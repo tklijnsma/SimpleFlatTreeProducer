@@ -302,6 +302,11 @@ void SimpleNtuplizer::setElectronVariables(
     trackerDriven_e        = electron.trackerDrivenSeed();
     classification_e       = int(electron.classification());
 
+    fbrem_e                = electron.fbrem();
+    auto el_track          = electron.gsfTrack();
+    gsfchi2_e              = el_track->chi2();
+    gsfndof_e              = el_track->ndof();
+
     // Write class variables to the output EpTree_
     electronTree_->Fill();
 
