@@ -69,6 +69,7 @@
 #include "Geometry/Records/interface/CaloGeometryRecord.h"
 #include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
 
+#include "EcalFunctions.h"
 
 //######################################
 //# Class declaration
@@ -242,7 +243,11 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         Int_t N_SATURATEDXTALS_e;
         Bool_t seedIsSaturated_e;
         Double_t seedCrystalEnergy_e;
-
+	
+	// --------------------------
+	// Dead cells studies
+	Int_t N_DEADXTALS_e;
+	Float_t seedToDeadCell_e;
 
         // -----------------------------
         // Coordinate variables
@@ -395,7 +400,11 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         Bool_t seedIsSaturated_p;
         Double_t seedCrystalEnergy_p;
 
-
+	// --------------------------
+	// Dead cells studies
+	Int_t N_DEADXTALS_p;
+	Float_t seedToDeadCell_p;
+	
         // -----------------------------
         // Coordinate variables
 

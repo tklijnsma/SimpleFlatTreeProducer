@@ -546,12 +546,17 @@ void SimpleNtuplizer::SetSaturationVariables(
     DetId ecalRecHitId; // ID of the hit in ecal -- to be compared with with hitId
 
     bool isSaturated;
+    bool isSick;
     
     // Written-to-tree variables
     Int_t    N_SATURATEDXTALS  = 0;
     bool     seedIsSaturated   = false;
     Double_t seedCrystalEnergy = 0.0;
 
+    Int_t    N_DEADXTALS       = 0;
+    Int_t    seedToDeadCell    = 9999.;
+    
+    
     // // Get the right ecalRecHits collection (different for barrel and encap)
     // edm::Handle<edm::SortedCollection<EcalRecHit>> ecalRecHits;
     // if (isEB) ecalRecHits = ecalRecHitsEB_ ;
@@ -570,10 +575,18 @@ void SimpleNtuplizer::SetSaturationVariables(
             if (!( ecalRecHitId == hitId )) continue;
 
             isSaturated  = ecalRecHit.checkFlag( EcalRecHit::Flags::kSaturated );
-
+            isSick       = ecalRecHit.checkFlag( EcalRecHit::Flags::kDead ) || ecalRecHit.checkFlag( EcalRecHit::Flags::kKilled ) || ecalRecHit.checkFlag( EcalRecHit::Flags::kFaultyHardware );
+	    
             // Increase the count of saturated crystals
             if (isSaturated) N_SATURATEDXTALS++;
-
+	    if (isSick) {
+	      N_DEADXTALS++;
+	      float deltaIeta = nTupler::getNrCrysDiffInEta(ecalRecHitId, seedId);
+	      float deltaIphi = nTupler::getNrCrysDiffInPhi(ecalRecHitId, seedId);
+	      float thisSeedToDeadCell = sqrt(deltaIeta*deltaIeta + deltaIphi*deltaIphi);
+	      if (thisSeedToDeadCell < seedToDeadCell) seedToDeadCell = thisSeedToDeadCell;
+	    }
+	    
             // Check if this hit concerns the seed of the seedCluster
             if ( ecalRecHitId == seedId ){
                 seedIsSaturated   = isSaturated;
@@ -594,11 +607,15 @@ void SimpleNtuplizer::SetSaturationVariables(
         N_SATURATEDXTALS_e  = N_SATURATEDXTALS ;
         seedIsSaturated_e   = seedIsSaturated ;
         seedCrystalEnergy_e = seedCrystalEnergy ;
+	N_DEADXTALS_e = N_DEADXTALS++ ;
+	seedToDeadCell_e = seedToDeadCell ;
         }
     else {
         N_SATURATEDXTALS_p  = N_SATURATEDXTALS ;
         seedIsSaturated_p   = seedIsSaturated ;
         seedCrystalEnergy_p = seedCrystalEnergy ;
+	N_DEADXTALS_p = N_DEADXTALS++ ;
+	seedToDeadCell_p = seedToDeadCell ;
         }
 
     }
@@ -636,3 +653,4 @@ void SimpleNtuplizer::endJob() {
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(SimpleNtuplizer);
+
