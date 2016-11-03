@@ -246,10 +246,16 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     electronTree_->Branch( "trkMomentum",                   &trkMomentum_e );
     electronTree_->Branch( "trkMomentumError",              &trkMomentumError_e );
     electronTree_->Branch( "trkMomentumRelError",           &trkMomentumRelError_e );
+    electronTree_->Branch( "trkEta",                        &trkEta_e );
+    electronTree_->Branch( "trkPhi",                        &trkPhi_e );
     electronTree_->Branch( "eleEcalDriven",                 &ecalDriven_e );
     electronTree_->Branch( "eleTrackerDriven",              &trackerDriven_e );
     electronTree_->Branch( "eleClass",                      &classification_e );
-
+    electronTree_->Branch( "fbrem",                         &fbrem_e );
+    electronTree_->Branch( "gsfchi2"           ,            &gsfchi2_e );
+    electronTree_->Branch( "gsfndof",                       &gsfndof_e );
+    electronTree_->Branch( "gsfnhits",                       &gsfnhits_e );
+    
 
     //######################################
     //# photonTree
