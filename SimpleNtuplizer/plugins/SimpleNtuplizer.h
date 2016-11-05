@@ -30,13 +30,16 @@
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/Common/interface/ValueMap.h"
-
-#include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
-#include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
-
+#include "DataFormats/EgammaReco/interface/SuperCluster.h"
+#include "DataFormats/EgammaReco/interface/SuperClusterFwd.h"
+#include "DataFormats/CaloRecHit/interface/CaloCluster.h"
+#include "DataFormats/CaloRecHit/interface/CaloClusterFwd.h"
 #include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+
+#include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
+#include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
@@ -83,13 +86,16 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
 
         void setElectronVariables( const reco::GsfElectron&, const edm::Event&, const edm::EventSetup& );
         void setPhotonVariables(   const reco::Photon&,      const edm::Event&, const edm::EventSetup& );
+        void setClusterVariables(  const reco::CaloCluster&, const edm::Event&, const edm::EventSetup& );
 
         void findTag( const reco::RecoCandidate& object, float corrToRaw, const edm::Event& iEvent, const edm::EventSetup& iSetup );
 
         bool matchPhotonToGenParticle( const reco::Photon& );
         bool matchElectronToGenParticle( const reco::GsfElectron& );
+        bool matchCaloClusterToGenParticle( const reco::CaloCluster& );
 
         void SetSaturationVariables( edm::Ptr<reco::CaloCluster> seedCluster, edm::Handle<edm::SortedCollection<EcalRecHit>> ecalRecHits, bool isElectron );
+        void SetClusterSaturationVariables( const reco::CaloCluster& cluster, edm::Handle<edm::SortedCollection<EcalRecHit>> ecalRecHits );
 
         enum ElectronMatchType{
             UNMATCHED = 0, 
@@ -107,14 +113,15 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         // =====================================
         // Setting tokens
         
-        edm::EDGetTokenT<reco::VertexCollection>      vtxToken_;
-        edm::EDGetTokenT<reco::GsfElectronCollection> electronToken_; // For AODSIM samples
-        edm::EDGetTokenT<reco::PhotonCollection>      photonToken_;
-        edm::EDGetTokenT<reco::GenParticleCollection> genParticleToken_;
-        edm::EDGetTokenT<double>                      rhoToken_; 
+        edm::EDGetTokenT<reco::VertexCollection>          vtxToken_;
+        edm::EDGetTokenT<reco::GsfElectronCollection>     electronToken_; // For AODSIM samples
+        edm::EDGetTokenT<reco::PhotonCollection>          photonToken_;
+        edm::EDGetTokenT<reco::GenParticleCollection>     genParticleToken_;
+        edm::EDGetTokenT<double>                          rhoToken_; 
 	edm::EDGetTokenT<std::vector<PileupSummaryInfo> > PUInfoToken_;
 	edm::EDGetTokenT<GenEventInfoProduct>             genEvtInfoToken_;
-	
+	edm::EDGetTokenT<reco::CaloClusterCollection>     clustersToken_;
+
         // Tokens for saturation variables
         edm::EDGetTokenT<edm::SortedCollection<EcalRecHit>> ecalRecHitEBToken_;
         edm::EDGetTokenT<edm::SortedCollection<EcalRecHit>> ecalRecHitEEToken_;
@@ -149,6 +156,7 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
 
         TTree *eventTree_;
         TTree *electronTree_;
+        TTree *clusterTree_;
         TTree *photonTree_;
 
         // Central event counter (specific to this output tree)
@@ -167,8 +175,8 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         Int_t nElectronsMatched_;
         Int_t nPhotons_;
         Int_t nPhotonsMatched_;
-
-
+        Int_t nClusters_;
+        Int_t nClustersMatched_;
 
         // =====================================
         // Electron tree variables
@@ -317,6 +325,106 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         Float_t genEnergy_e;
         Int_t   genPdgId_e;
         Int_t   genStatus_e;
+
+	// =====================================
+        // Cluster tree variables
+
+        // -----------------------------
+        // Variables used in training
+
+        Float_t pt_c;
+        Float_t rawEnergy_c;
+        Float_t eta_c;
+        Float_t phi_c;
+        Int_t   isEB_c;
+
+        Float_t rhoValue_c;
+
+        // -----------------------------
+        // Showershape variables -- These have a full5x5_ equivalent
+
+        Float_t r9_c;
+        Float_t eHorizontal_c;
+        Float_t eVertical_c;
+        Float_t sigmaIetaIeta_c;
+        Float_t sigmaIetaIphi_c;
+        Float_t sigmaIphiIphi_c;
+        Float_t e5x5_c;
+        Float_t e3x3_c;
+        Float_t eMax_c;
+        Float_t e2nd_c;
+        Float_t eTop_c;
+        Float_t eBottom_c;
+        Float_t eLeft_c;
+        Float_t eRight_c;
+        Float_t e2x5Max_c;
+        Float_t e2x5Left_c;
+        Float_t e2x5Right_c;
+        Float_t e2x5Top_c;
+        Float_t e2x5Bottom_c;
+
+        Float_t full5x5_r9_c;
+        Float_t full5x5_eHorizontal_c;
+        Float_t full5x5_eVertical_c;
+        Float_t full5x5_sigmaIetaIeta_c;
+        Float_t full5x5_sigmaIetaIphi_c;
+        Float_t full5x5_sigmaIphiIphi_c;
+        Float_t full5x5_e5x5_c;
+        Float_t full5x5_e3x3_c;
+        Float_t full5x5_eMax_c;
+        Float_t full5x5_e2nd_c;
+        Float_t full5x5_eTop_c;
+        Float_t full5x5_eBottom_c;
+        Float_t full5x5_eLeft_c;
+        Float_t full5x5_eRight_c;
+        Float_t full5x5_e2x5Max_c;
+        Float_t full5x5_e2x5Left_c;
+        Float_t full5x5_e2x5Right_c;
+        Float_t full5x5_e2x5Top_c;
+        Float_t full5x5_e2x5Bottom_c;
+
+        // -----------------------------
+        // Saturation variables
+
+        Int_t N_SATURATEDXTALS_c;
+        Bool_t seedIsSaturated_c;
+        Double_t seedCrystalEnergy_c;
+
+	// --------------------------
+	// Dead cells studies
+	Int_t N_DEADXTALS_c;
+	Float_t seedToDeadCell_c;
+
+        // -----------------------------
+        // Coordinate variables
+
+        // EB
+        std::vector<Int_t>   iEtaCoordinate_c;
+        std::vector<Int_t>   iPhiCoordinate_c;
+        std::vector<Float_t> cryEtaCoordinate_c;
+        std::vector<Float_t> cryPhiCoordinate_c;
+        // EE
+        std::vector<Int_t>   iXCoordinate_c;
+        std::vector<Int_t>   iYCoordinate_c;
+        std::vector<Float_t> cryXCoordinate_c;
+        std::vector<Float_t> cryYCoordinate_c;
+
+        // Additional coordinate variables for photon
+        std::vector<Int_t>   iEtaMod5_c;
+        std::vector<Int_t>   iPhiMod2_c;
+        std::vector<Int_t>   iEtaMod20_c;
+        std::vector<Int_t>   iPhiMod20_c;
+	
+        Float_t genMatchdR_c;
+        Float_t genMatchdE_c;
+        Float_t genMatchdRdE_c;
+        Float_t genPt_c;
+        Float_t genPhi_c;
+        Float_t genEta_c;
+        Float_t genMass_c;
+        Float_t genEnergy_c;
+        Int_t   genPdgId_c;
+        Int_t   genStatus_c;
 
 
         // =====================================

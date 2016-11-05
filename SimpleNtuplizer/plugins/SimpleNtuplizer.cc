@@ -34,6 +34,7 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     rhoToken_(consumes<double> (iConfig.getParameter<edm::InputTag>("rho"))),
     PUInfoToken_(consumes<std::vector<PileupSummaryInfo> >(iConfig.getParameter<edm::InputTag>("PUInfoInputTag"))),
     genEvtInfoToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("genEvtInfoInputTag"))),
+    clustersToken_(consumes<reco::CaloClusterCollection>(iConfig.getParameter<edm::InputTag>("clusters"))),
 
     // Saturation
     ecalRecHitEBToken_(consumes<edm::SortedCollection<EcalRecHit>>(iConfig.getParameter<edm::InputTag>("ecalrechitsEB"))),
@@ -43,7 +44,6 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     electronTightIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronTightIdMap"))),
     HLTTag_token_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("HLTTag"))),
     HLTObjTag_token_(consumes<trigger::TriggerEvent>(iConfig.getParameter<edm::InputTag>("HLTObjTag"))),
-    // caloClusterToken_(consumes<reco::CaloClusterCollection>(iConfig.getParameter<edm::InputTag>("caloclusters"))),
     elecTrig_(iConfig.getUntrackedParameter<std::vector<std::string> >("ElecTrig")),
     elecFilt_(iConfig.getUntrackedParameter<std::vector<std::string> >("ElecFilt")),
     isData_(iConfig.getUntrackedParameter<bool >("isData"))
@@ -69,6 +69,8 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     eventTree_->Branch( "nElectronsMatched", &nElectronsMatched_ , "nEleMatched/I"  );
     eventTree_->Branch( "nPhotons",          &nPhotons_,           "nPho/I"  );
     eventTree_->Branch( "nPhotonsMatched",   &nPhotonsMatched_,    "nPhoMatched/I"  );
+    eventTree_->Branch( "nClusters",         &nClusters_,          "nClu/I"  );
+    eventTree_->Branch( "nClustersMatched",  &nClustersMatched_,   "nCluMatched/I"  );
 
     eventTree_->Branch( "NtupID",                        &NtupID_               ); // For convenient cuts
     eventTree_->Branch( "eventNumber",                   &eventNumber_          );
@@ -163,6 +165,9 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     electronTree_->Branch( "seedIsSaturated",               &seedIsSaturated_e   );
     electronTree_->Branch( "seedCrystalEnergy",             &seedCrystalEnergy_e );
 
+    // Dead cells
+    electronTree_->Branch( "N_DEADXTALS",                   &N_DEADXTALS_e  );
+    electronTree_->Branch( "seedToDeadCell",               &seedToDeadCell_e );
 
     // Cluster variables
     electronTree_->Branch( "N_ECALClusters",                &numberOfClusters_e  );
@@ -255,7 +260,118 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     electronTree_->Branch( "gsfchi2"           ,            &gsfchi2_e );
     electronTree_->Branch( "gsfndof",                       &gsfndof_e );
     electronTree_->Branch( "gsfnhits",                       &gsfnhits_e );
+
+    //######################################
+    //# clusterTree
+    //######################################
+
+    clusterTree_ = fs->make<TTree> ("ClusterTree", "Cluster data");
+
+    // Cluster variables
+    //  - All branch names now without a dash
+    //  - Switched SC / SS tags to the front
+
+    clusterTree_->Branch( "NtupID",                        &NtupID_               ); // For convenient cuts
+    clusterTree_->Branch( "eventNumber",                   &eventNumber_          );
+    clusterTree_->Branch( "luminosityBlock",               &luminosityBlock_      );
+    clusterTree_->Branch( "run",                           &run_                  );
+    clusterTree_->Branch( "weight",                        &weight_               );
+    clusterTree_->Branch( "trueNumInteractions",           &trueNumInteractions_   );
+
+    clusterTree_->Branch( "pt",                            &pt_c       );
+    clusterTree_->Branch( "scIsEB",                        &isEB_c     );
+    clusterTree_->Branch( "isMatched",                     &isMatched_ ); // Only matched is saved, so should be 1
+
+    // =====================================
+    // All actually used for training
+
+    clusterTree_->Branch( "nVtx",                          &nPV_                );
+    clusterTree_->Branch( "scRawEnergy",                   &rawEnergy_c         );
+    clusterTree_->Branch( "scEta",                         &eta_c               );
+    clusterTree_->Branch( "scPhi",                         &phi_c               );
+    clusterTree_->Branch( "rhoValue",                      &rhoValue_c          );
+
+    // All the showershape variables
+    clusterTree_->Branch( "r9",                     &r9_c                      );
+    clusterTree_->Branch( "eHorizontal",            &eHorizontal_c             );
+    clusterTree_->Branch( "eVertical",              &eVertical_c               );
+    clusterTree_->Branch( "sigmaIetaIeta",          &sigmaIetaIeta_c           );
+    clusterTree_->Branch( "sigmaIetaIphi",          &sigmaIetaIphi_c           );
+    clusterTree_->Branch( "sigmaIphiIphi",          &sigmaIphiIphi_c           );
+    clusterTree_->Branch( "e5x5",                   &e5x5_c                    );
+    clusterTree_->Branch( "e3x3",                   &e3x3_c                    );
+    clusterTree_->Branch( "eMax",                   &eMax_c                    );
+    clusterTree_->Branch( "e2nd",                   &e2nd_c                    );
+    clusterTree_->Branch( "eTop",                   &eTop_c                    );
+    clusterTree_->Branch( "eBottom",                &eBottom_c                 );
+    clusterTree_->Branch( "eLeft",                  &eLeft_c                   );
+    clusterTree_->Branch( "eRight",                 &eRight_c                  );
+    clusterTree_->Branch( "e2x5Max",                &e2x5Max_c                 );
+    clusterTree_->Branch( "e2x5Left",               &e2x5Left_c                );
+    clusterTree_->Branch( "e2x5Right",              &e2x5Right_c               );
+    clusterTree_->Branch( "e2x5Top",                &e2x5Top_c                 );
+    clusterTree_->Branch( "e2x5Bottom",             &e2x5Bottom_c              );
+
+    clusterTree_->Branch( "full5x5_r9",             &full5x5_r9_c              );
+    clusterTree_->Branch( "full5x5_eHorizontal",    &full5x5_eHorizontal_c     );
+    clusterTree_->Branch( "full5x5_eVertical",      &full5x5_eVertical_c       );
+    clusterTree_->Branch( "full5x5_sigmaIetaIeta",  &full5x5_sigmaIetaIeta_c   );
+    clusterTree_->Branch( "full5x5_sigmaIetaIphi",  &full5x5_sigmaIetaIphi_c   );
+    clusterTree_->Branch( "full5x5_sigmaIphiIphi",  &full5x5_sigmaIphiIphi_c   );
+    clusterTree_->Branch( "full5x5_e5x5",           &full5x5_e5x5_c            );
+    clusterTree_->Branch( "full5x5_e3x3",           &full5x5_e3x3_c            );
+    clusterTree_->Branch( "full5x5_eMax",           &full5x5_eMax_c            );
+    clusterTree_->Branch( "full5x5_e2nd",           &full5x5_e2nd_c            );
+    clusterTree_->Branch( "full5x5_eTop",           &full5x5_eTop_c            );
+    clusterTree_->Branch( "full5x5_eBottom",        &full5x5_eBottom_c         );
+    clusterTree_->Branch( "full5x5_eLeft",          &full5x5_eLeft_c           );
+    clusterTree_->Branch( "full5x5_eRight",         &full5x5_eRight_c          );
+    clusterTree_->Branch( "full5x5_e2x5Max",        &full5x5_e2x5Max_c         );
+    clusterTree_->Branch( "full5x5_e2x5Left",       &full5x5_e2x5Left_c        );
+    clusterTree_->Branch( "full5x5_e2x5Right",      &full5x5_e2x5Right_c       );
+    clusterTree_->Branch( "full5x5_e2x5Top",        &full5x5_e2x5Top_c         );
+    clusterTree_->Branch( "full5x5_e2x5Bottom",     &full5x5_e2x5Bottom_c      );
+
+    // Saturation variables
+    clusterTree_->Branch( "N_SATURATEDXTALS",              &N_SATURATEDXTALS_c  );
+    clusterTree_->Branch( "seedIsSaturated",               &seedIsSaturated_c   );
+    clusterTree_->Branch( "seedCrystalEnergy",             &seedCrystalEnergy_c );
+
+    // Dead cells
+    clusterTree_->Branch( "N_DEADXTALS",                   &N_DEADXTALS_c  );
+    clusterTree_->Branch( "seedToDeadCell",               &seedToDeadCell_c );
+
+
+    // <<<< Only this part (the coordinate variables) needs to be uniformized with the photon tree
+    //      The rest should be the same
+
+    // EB
+    clusterTree_->Branch( "cryEtaCoordinate",            &cryEtaCoordinate_c      );
+    clusterTree_->Branch( "cryPhiCoordinate",            &cryPhiCoordinate_c      );
+    clusterTree_->Branch( "iEtaCoordinate",              &iEtaCoordinate_c        );
+    clusterTree_->Branch( "iPhiCoordinate",              &iPhiCoordinate_c        );
+    clusterTree_->Branch( "iEtaMod5",                    &iEtaMod5_c              );
+    clusterTree_->Branch( "iPhiMod2",                    &iPhiMod2_c              );
+    clusterTree_->Branch( "iEtaMod20",                   &iEtaMod20_c             );
+    clusterTree_->Branch( "iPhiMod20",                   &iPhiMod20_c             );
     
+    // EE
+    clusterTree_->Branch( "cryXCoordinate",              &cryXCoordinate_c        );
+    clusterTree_->Branch( "cryYCoordinate",              &cryYCoordinate_c        );
+    clusterTree_->Branch( "iXCoordinate",                &iXCoordinate_c          );
+    clusterTree_->Branch( "iYCoordinate",                &iYCoordinate_c          );
+
+
+    clusterTree_->Branch( "genMatchdR",                    &genMatchdR_c     );
+    clusterTree_->Branch( "genMatchdE",                    &genMatchdE_c     );
+    clusterTree_->Branch( "genMatchdRdE",                  &genMatchdRdE_c   );
+    clusterTree_->Branch( "genPt",                         &genPt_c          );
+    clusterTree_->Branch( "genPhi",                        &genPhi_c         );
+    clusterTree_->Branch( "genEta",                        &genEta_c         );
+    clusterTree_->Branch( "genMass",                       &genMass_c        );
+    clusterTree_->Branch( "genEnergy",                     &genEnergy_c      );
+    clusterTree_->Branch( "genPdgId",                      &genPdgId_c       );
+    clusterTree_->Branch( "genStatus",                     &genStatus_c      );
 
     //######################################
     //# photonTree
@@ -336,6 +452,10 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     photonTree_->Branch( "N_SATURATEDXTALS",              &N_SATURATEDXTALS_p  );
     photonTree_->Branch( "seedIsSaturated",               &seedIsSaturated_p   );
     photonTree_->Branch( "seedCrystalEnergy",             &seedCrystalEnergy_p );
+
+    // Dead cells
+    photonTree_->Branch( "N_DEADXTALS",                   &N_DEADXTALS_p );
+    photonTree_->Branch( "seedToDeadCell",                &seedToDeadCell_p );
 
     // Cluster variables
     photonTree_->Branch( "N_ECALClusters",                &numberOfClusters_p  );
@@ -455,7 +575,10 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
     // Get GenParticle collection
     //   Definition moved --> class variable
     //   edm::Handle<reco::GenParticleCollection> genParticles;
-    // iEvent.getByToken( caloClusterToken_, caloClusters_ );
+
+    // Get clusters
+    edm::Handle<reco::CaloClusterCollection> clusters;    
+    iEvent.getByToken( clustersToken_, clusters);
 
     iEvent.getByToken( ecalRecHitEBToken_, ecalRecHitsEB_ );
     iEvent.getByToken( ecalRecHitEEToken_, ecalRecHitsEE_ );
@@ -471,12 +594,10 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
 
     edm::ESHandle<CaloGeometry> pGeometry;
     iSetup.get<CaloGeometryRecord>().get(pGeometry);
-    // const CaloGeometry *geometry = pGeometry.product();
     geometry_ = pGeometry.product();
     
     edm::ESHandle<CaloTopology> pTopology;
     iSetup.get<CaloTopologyRecord>().get(pTopology);
-    // const CaloTopology *topology = pTopology.product();
     topology_ = pTopology.product();
 
 
@@ -528,6 +649,13 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
         setPhotonVariables( photon, iEvent, iSetup );
         }
 
+    // Loop over photons
+    nClusters_ = 0;
+    nClustersMatched_ = 0;
+    for (const reco::CaloCluster &cluster : *clusters) {
+      setClusterVariables( cluster, iEvent, iSetup );
+    }
+    
     // Fill in the event specific variables
     eventTree_->Fill();
 
@@ -625,6 +753,85 @@ void SimpleNtuplizer::SetSaturationVariables(
         }
 
     }
+
+void SimpleNtuplizer::SetClusterSaturationVariables(
+        const reco::CaloCluster& cluster,
+        edm::Handle<edm::SortedCollection<EcalRecHit>> ecalRecHits
+        ){
+
+
+    DetId seedId                                            = cluster.seed();
+    std::vector< std::pair<DetId, float> > hitsAndFractions = cluster.hitsAndFractions();
+
+    DetId hitId;        // ID of the hit in the seedCluster
+    DetId ecalRecHitId; // ID of the hit in ecal -- to be compared with with hitId
+
+    bool isSaturated;
+    bool isSick;
+    
+    // Written-to-tree variables
+    Int_t    N_SATURATEDXTALS  = 0;
+    bool     seedIsSaturated   = false;
+    Double_t seedCrystalEnergy = 0.0;
+
+    Int_t    N_DEADXTALS       = 0;
+    Int_t    seedToDeadCell    = 9999.;
+    
+    
+    // // Get the right ecalRecHits collection (different for barrel and encap)
+    // edm::Handle<edm::SortedCollection<EcalRecHit>> ecalRecHits;
+    // if (isEB) ecalRecHits = ecalRecHitsEB_ ;
+    // else      ecalRecHits = ecalRecHitsEE_ ;
+
+    // Loop over all hits in the seedCluster
+    for (const std::pair<DetId, float> hitFractionPair : hitsAndFractions) {
+
+        // Get hitId
+        hitId    = std::get<0>(hitFractionPair);
+
+        // Loop over all hits in ecal, find the hit that corresponds to the hit in the seedCluster
+        for (const EcalRecHit &ecalRecHit : *ecalRecHits) {
+            
+            ecalRecHitId = ecalRecHit.detid();
+            if (!( ecalRecHitId == hitId )) continue;
+
+            isSaturated  = ecalRecHit.checkFlag( EcalRecHit::Flags::kSaturated );
+            isSick       = ecalRecHit.checkFlag( EcalRecHit::Flags::kDead ) || ecalRecHit.checkFlag( EcalRecHit::Flags::kKilled ) || ecalRecHit.checkFlag( EcalRecHit::Flags::kFaultyHardware );
+	    
+            // Increase the count of saturated crystals
+            if (isSaturated) N_SATURATEDXTALS++;
+	    if (isSick) {
+	      N_DEADXTALS++;
+	      float deltaIeta = nTupler::getNrCrysDiffInEta(ecalRecHitId, seedId);
+	      float deltaIphi = nTupler::getNrCrysDiffInPhi(ecalRecHitId, seedId);
+	      float thisSeedToDeadCell = sqrt(deltaIeta*deltaIeta + deltaIphi*deltaIphi);
+	      if (thisSeedToDeadCell < seedToDeadCell) seedToDeadCell = thisSeedToDeadCell;
+	    }
+	    
+            // Check if this hit concerns the seed of the seedCluster
+            if ( ecalRecHitId == seedId ){
+                seedIsSaturated   = isSaturated;
+                seedCrystalEnergy = ecalRecHit.energy();
+                }
+            }
+
+        }
+
+
+    if (seedCrystalEnergy == 0.0){
+        std::cout << "  WARNING: Seed crystal energy is 0.0" << std::endl;
+        }
+
+
+    // Arrange output -- depends on type of particle
+    N_SATURATEDXTALS_c  = N_SATURATEDXTALS ;
+    seedIsSaturated_c   = seedIsSaturated ;
+    seedCrystalEnergy_c = seedCrystalEnergy ;
+    N_DEADXTALS_c = N_DEADXTALS++ ;
+    seedToDeadCell_c = seedToDeadCell ;
+
+    }
+
 
 
 //######################################

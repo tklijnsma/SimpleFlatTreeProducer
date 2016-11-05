@@ -29,7 +29,7 @@ readFiles.extend([
     # 'file:/afs/cern.ch/work/r/rcoelhol/public/ExampleAODs/DYToEE_NNPDF30_13TeV_powheg_pythia8.root',
 
     # 'file:/afs/cern.ch/work/t/tklijnsm/EGM/AODexamples/DoubleElectron_AODSIM_example.root',
-    'file:/afs/cern.ch/work/t/tklijnsm/EGM/AODexamples/DoublePhoton_AODSIM_example.root',
+    'file:/home/users/rclsa/RegressionTraining/newTreeMaker/CMSSW_8_0_12/src/SimpleFlatTreeProducer/064BE78B-E707-E611-A991-0025905C5438.root',
 
     ])
 secFiles.extend([
@@ -51,6 +51,7 @@ process.een_analyzer = cms.EDAnalyzer(
     vertices            = cms.InputTag("offlinePrimaryVertices"),
     electrons           = cms.InputTag("gedGsfElectrons"),
     photons             = cms.InputTag("gedPhotons"),
+    clusters            = cms.InputTag("particleFlowEGamma","EBEEClusters"),
     rho                 = cms.InputTag("fixedGridRhoFastjetAll"),
     genparticles        = cms.InputTag("genParticles"),
     PUInfoInputTag      = cms.InputTag("addPileupInfo"),
