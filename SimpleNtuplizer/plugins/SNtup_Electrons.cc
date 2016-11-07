@@ -76,7 +76,9 @@ void SimpleNtuplizer::setElectronVariables(
     numberOfClusters   = std::max( 0, int (superCluster->clusters().size()) );
     numberOfClusters_e = numberOfClusters ;
 
-    hadronicOverEm_e   = electron.hadronicOverEm();
+    hadronicOverEm_e   = electron.hcalDepth1OverEcalBc() + electron.hcalDepth2OverEcalBc();
+    hadronic1OverEm_e  = electron.hcalDepth1OverEcalBc();
+    hadronic2OverEm_e  = electron.hcalDepth2OverEcalBc();
     rhoValue_e         = rho;
     delEtaSeed_e       = superCluster->seed()->eta() - superCluster->position().Eta();
     delPhiSeed_e       = reco::deltaPhi( superCluster->seed()->phi(),superCluster->position().Phi());

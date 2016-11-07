@@ -113,6 +113,8 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     electronTree_->Branch( "scPhiWidth",                    &phiWidth_e          );
     electronTree_->Branch( "scSeedRawEnergy",               &seedEnergy_e        );
     electronTree_->Branch( "hadronicOverEm",                &hadronicOverEm_e    );
+    electronTree_->Branch( "hadronic1OverEm",               &hadronic1OverEm_e    );
+    electronTree_->Branch( "hadronic2OverEm",               &hadronic2OverEm_e    );
     electronTree_->Branch( "rhoValue",                      &rhoValue_e          );
     electronTree_->Branch( "delEtaSeed",                    &delEtaSeed_e        );
     electronTree_->Branch( "delPhiSeed",                    &delPhiSeed_e        );
@@ -403,6 +405,8 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     photonTree_->Branch( "scPhiWidth",                    &phiWidth_p          );
     photonTree_->Branch( "scSeedRawEnergy",               &seedEnergy_p        );
     photonTree_->Branch( "hadronicOverEm",                &hadronicOverEm_p    );
+    photonTree_->Branch( "hadronic1OverEm",               &hadronic1OverEm_p    );
+    photonTree_->Branch( "hadronic2OverEm",               &hadronic2OverEm_p    );
     photonTree_->Branch( "rhoValue",                      &rhoValue_p          );
     photonTree_->Branch( "delEtaSeed",                    &delEtaSeed_p        );
     photonTree_->Branch( "delPhiSeed",                    &delPhiSeed_p        );

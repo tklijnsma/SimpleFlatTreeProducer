@@ -196,6 +196,8 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         Float_t preshowerEnergy_e;
 
         Float_t hadronicOverEm_e;
+        Float_t hadronic1OverEm_e;
+        Float_t hadronic2OverEm_e;
         Float_t rhoValue_e;
         Float_t delEtaSeed_e;
         Float_t delPhiSeed_e;
@@ -458,6 +460,8 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         Float_t preshowerEnergy_p;
 
         Float_t hadronicOverEm_p;
+        Float_t hadronic1OverEm_p;
+        Float_t hadronic2OverEm_p;
         Float_t rhoValue_p;
         Float_t delEtaSeed_p;
         Float_t delPhiSeed_p;

@@ -60,7 +60,9 @@ void SimpleNtuplizer::setPhotonVariables(
     seedEnergy_p       = superCluster->seed()->energy() ;
 
     // Vars NOT in electronTree:
-    hadronicOverEm_p   = photon.hadronicOverEm();
+    hadronicOverEm_p   = photon.hadronicDepth1OverEm() + photon.hadronicDepth2OverEm();
+    hadronic1OverEm_p  = photon.hadronicDepth1OverEm();
+    hadronic2OverEm_p  = photon.hadronicDepth2OverEm();
     rhoValue_p         = rho;
     delEtaSeed_p       = seedCluster->eta()-superCluster->position().Eta();
     delPhiSeed_p       = reco::deltaPhi(seedCluster->phi(),superCluster->position().Phi());
