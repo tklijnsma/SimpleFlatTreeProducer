@@ -1,6 +1,5 @@
 #include "SimpleNtuplizer.h"
 
-
 // Function that actually reads values from the AODSIM input file
 void SimpleNtuplizer::setElectronVariables(
         const reco::GsfElectron& electron,
@@ -49,6 +48,10 @@ void SimpleNtuplizer::setElectronVariables(
     Float_t rho = *rhoH;
 
 
+    edm::Handle<reco::BeamSpot> beamSpotH;
+    iEvent.getByToken(beamSpotToken, beamSpotH);
+    reco::BeamSpot beamspot = *beamSpotH;
+    
     //######################################
     //# Start filling branch variables
     //######################################
@@ -296,22 +299,23 @@ void SimpleNtuplizer::setElectronVariables(
     //######################################
     //# Analyze EP
     //######################################
+    
+    auto el_track          = electron.gsfTrack();
 
-    trkMomentum_e          = electron.trackMomentumAtVtx().R();
-    trkMomentumError_e     = electron.trackMomentumError();
-    trkMomentumRelError_e  = electron.trackMomentumError() / electron.trackMomentumAtVtx().R();
-    trkEta_e               = electron.trackMomentumAtVtx().eta();
-    trkPhi_e               = electron.trackMomentumAtVtx().phi();
+    trkMomentum_e          = el_track.pMode();
+    trkMomentumError_e     = el_track.ptModeError();
+    trkMomentumRelError_e  = trkMomentumError_e/trkMomentum_e;
+    trkEta_e               = el_track.etaMode();
+    trkPhi_e               = el_track.phiMode();
+
+    gsfchi2_e              = el_track->chi2();
+    gsfndof_e              = el_track->ndof();
+    gsfnhits_e             = el_track->numberOfValidHits();
 
     ecalDriven_e           = electron.ecalDriven();
     trackerDriven_e        = electron.trackerDrivenSeed();
     classification_e       = int(electron.classification());
     fbrem_e                = electron.fbrem();
-
-    auto el_track          = electron.gsfTrack();
-    gsfchi2_e              = el_track->chi2();
-    gsfndof_e              = el_track->ndof();
-    gsfnhits_e             = el_track->numberOfValidHits();
 
     // Write class variables to the output EpTree_
     electronTree_->Fill();

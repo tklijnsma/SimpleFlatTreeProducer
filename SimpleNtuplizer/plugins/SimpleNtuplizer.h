@@ -143,7 +143,7 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         edm::Handle<edm::SortedCollection<EcalRecHit>> ecalRecHitsEE_;
 	edm::Handle<std::vector<PileupSummaryInfo> >   puInfoH_;
 	edm::Handle<GenEventInfoProduct>               genEvtInfo_;
-
+	
         // =====================================
         // Configuration parameters that are not tokens
     	std::vector<std::string> elecTrig_; 
