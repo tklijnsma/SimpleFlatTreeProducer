@@ -46,11 +46,6 @@ void SimpleNtuplizer::setElectronVariables(
     edm::Handle< double > rhoH;
     iEvent.getByToken(rhoToken_,rhoH);
     Float_t rho = *rhoH;
-
-
-    edm::Handle<reco::BeamSpot> beamSpotH;
-    iEvent.getByToken(beamSpotToken, beamSpotH);
-    reco::BeamSpot beamspot = *beamSpotH;
     
     //######################################
     //# Start filling branch variables
@@ -302,11 +297,11 @@ void SimpleNtuplizer::setElectronVariables(
     
     auto el_track          = electron.gsfTrack();
 
-    trkMomentum_e          = el_track.pMode();
-    trkMomentumError_e     = el_track.ptModeError();
+    trkMomentum_e          = el_track->pMode();
+    trkMomentumError_e     = el_track->ptModeError();
     trkMomentumRelError_e  = trkMomentumError_e/trkMomentum_e;
-    trkEta_e               = el_track.etaMode();
-    trkPhi_e               = el_track.phiMode();
+    trkEta_e               = el_track->etaMode();
+    trkPhi_e               = el_track->phiMode();
 
     gsfchi2_e              = el_track->chi2();
     gsfndof_e              = el_track->ndof();
