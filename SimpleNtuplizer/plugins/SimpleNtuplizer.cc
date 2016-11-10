@@ -259,7 +259,8 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     electronTree_->Branch( "trkEta",                        &trkEta_e );
     electronTree_->Branch( "trkPhi",                        &trkPhi_e );
     electronTree_->Branch( "eleEcalDriven",                 &ecalDriven_e );
-    electronTree_->Branch( "eleTrackerDriven",              &trackerDriven_e );
+    electronTree_->Branch( "eleEcalDrivenSeed",             &ecalDrivenSeed_e );
+    electronTree_->Branch( "eleTrackerDrivenSeed",          &trackerDrivenSeed_e );
     electronTree_->Branch( "eleClass",                      &classification_e );
     electronTree_->Branch( "fbrem",                         &fbrem_e );
     electronTree_->Branch( "gsfchi2"           ,            &gsfchi2_e );

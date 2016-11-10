@@ -322,7 +322,8 @@ void SimpleNtuplizer::setElectronVariables(
     gsfnhits_e             = el_track->numberOfValidHits();
 
     ecalDriven_e           = electron.ecalDriven();
-    trackerDriven_e        = electron.trackerDrivenSeed();
+    ecalDrivenSeed_e       = electron.ecalDrivenSeed();
+    trackerDrivenSeed_e    = electron.trackerDrivenSeed();
     classification_e       = int(electron.classification());
     fbrem_e                = electron.fbrem();
 

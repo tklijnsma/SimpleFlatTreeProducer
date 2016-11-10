@@ -313,7 +313,8 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
 	Float_t trkPhi_e;
 	Float_t eOverPuncorr_e;
         Float_t ecalDriven_e;
-        Float_t trackerDriven_e;
+        Float_t ecalDrivenSeed_e;
+        Float_t trackerDrivenSeed_e;
         Float_t classification_e;
 	Float_t fbrem_e;
 	Float_t gsfchi2_e;
