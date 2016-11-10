@@ -29,7 +29,7 @@ readFiles.extend([
     # 'file:/afs/cern.ch/work/r/rcoelhol/public/ExampleAODs/DYToEE_NNPDF30_13TeV_powheg_pythia8.root',
 
     # 'file:/afs/cern.ch/work/t/tklijnsm/EGM/AODexamples/DoubleElectron_AODSIM_example.root',
-    'file:/home/users/rclsa/RegressionTraining/newTreeMaker/CMSSW_8_0_12/src/SimpleFlatTreeProducer/064BE78B-E707-E611-A991-0025905C5438.root',
+    'file:/home/users/rclsa/RegressionTraining/newTreeMaker/064BE78B-E707-E611-A991-0025905C5438.root',
 
     ])
 secFiles.extend([

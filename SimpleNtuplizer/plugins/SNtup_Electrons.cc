@@ -298,10 +298,17 @@ void SimpleNtuplizer::setElectronVariables(
     auto el_track          = electron.gsfTrack();
 
     trkMomentum_e          = el_track->pMode();
-    trkMomentumError_e     = el_track->ptModeError();
-    trkMomentumRelError_e  = trkMomentumError_e/trkMomentum_e;
     trkEta_e               = el_track->etaMode();
     trkPhi_e               = el_track->phiMode();
+
+    float ptMode       = el_track->ptMode();
+    float ptModeErrror = el_track->ptModeError();    
+    float etaModeError = el_track->etaModeError();
+    // p = pT cosh(eta) -> dp = sqrt ( pTerr^2 * cosh^2(eta) + pT^2 * sinh^2(eta) * etaerr^2)
+    float pModeError   = sqrt(ptModeErrror*ptModeErrror*cosh(trkEta_e)*cosh(trkEta_e) + ptMode*ptMode*sinh(trkEta_e)*sinh(trkEta_e)*etaModeError*etaModeError);
+
+    trkMomentumError_e     = pModeError;
+    trkMomentumRelError_e  = trkMomentumError_e/trkMomentum_e;
 
     gsfchi2_e              = el_track->chi2();
     gsfndof_e              = el_track->ndof();
