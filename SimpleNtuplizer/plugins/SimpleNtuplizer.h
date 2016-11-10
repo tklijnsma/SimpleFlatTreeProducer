@@ -306,9 +306,12 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
 
         Float_t trkMomentum_e;
         Float_t trkMomentumError_e;
+        Float_t trkMomentumErrorEGM_e;
+        Float_t trkMomentumErrorCorrected_e;
         Float_t trkMomentumRelError_e;
 	Float_t trkEta_e;
 	Float_t trkPhi_e;
+	Float_t eOverPuncorr_e;
         Float_t ecalDriven_e;
         Float_t trackerDriven_e;
         Float_t classification_e;

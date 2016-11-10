@@ -252,7 +252,10 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     // Ep variables - Only for electrons
     electronTree_->Branch( "trkMomentum",                   &trkMomentum_e );
     electronTree_->Branch( "trkMomentumError",              &trkMomentumError_e );
+    electronTree_->Branch( "trkMomentumErrorEGM",           &trkMomentumErrorEGM_e );
+    electronTree_->Branch( "trkMomentumErrorCorrected",     &trkMomentumErrorCorrected_e );
     electronTree_->Branch( "trkMomentumRelError",           &trkMomentumRelError_e );
+    electronTree_->Branch( "eOverPuncorr",                  &eOverPuncorr_e );    
     electronTree_->Branch( "trkEta",                        &trkEta_e );
     electronTree_->Branch( "trkPhi",                        &trkPhi_e );
     electronTree_->Branch( "eleEcalDriven",                 &ecalDriven_e );

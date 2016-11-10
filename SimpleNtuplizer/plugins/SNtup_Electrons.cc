@@ -310,6 +310,13 @@ void SimpleNtuplizer::setElectronVariables(
     trkMomentumError_e     = pModeError;
     trkMomentumRelError_e  = trkMomentumError_e/trkMomentum_e;
 
+    // Other flavours of track error
+    trkMomentumErrorEGM_e = electron.trackMomentumError();
+    trkMomentumErrorCorrected_e = electron.p4Error(electron.corrections().candidateP4Kind);
+
+    // E over P (uncorrected!)
+    eOverPuncorr_e = (rawEnergy_e+preshowerEnergy_e)/trkMomentum_e;
+
     gsfchi2_e              = el_track->chi2();
     gsfndof_e              = el_track->ndof();
     gsfnhits_e             = el_track->numberOfValidHits();
