@@ -16,6 +16,7 @@
 //
 //
 
+#undef AOD
 
 #include "SimpleNtuplizer.h"
 
@@ -28,8 +29,8 @@
 SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     // All tokens given in the python config!
     vtxToken_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"))),
-    electronToken_(consumes<reco::GsfElectronCollection>(iConfig.getParameter<edm::InputTag>("electrons"))),
-    photonToken_(consumes<reco::PhotonCollection>(iConfig.getParameter<edm::InputTag>("photons"))),
+    electronToken_(consumes<edm::View<pat::Electron>>(iConfig.getParameter<edm::InputTag>("electrons"))),
+    photonToken_(consumes<edm::View<pat::Photon>>(iConfig.getParameter<edm::InputTag>("photons"))),    
     genParticleToken_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("genparticles"))),
     rhoToken_(consumes<double> (iConfig.getParameter<edm::InputTag>("rho"))),
     PUInfoToken_(consumes<std::vector<PileupSummaryInfo> >(iConfig.getParameter<edm::InputTag>("PUInfoInputTag"))),
@@ -43,7 +44,7 @@ SimpleNtuplizer::SimpleNtuplizer(const edm::ParameterSet& iConfig):
     // T&P
     electronTightIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronTightIdMap"))),
     HLTTag_token_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("HLTTag"))),
-    HLTObjTag_token_(consumes<trigger::TriggerEvent>(iConfig.getParameter<edm::InputTag>("HLTObjTag"))),
+    HLTObjTag_token_(consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getParameter<edm::InputTag>("HLTObjTag"))),
     elecTrig_(iConfig.getUntrackedParameter<std::vector<std::string> >("ElecTrig")),
     elecFilt_(iConfig.getUntrackedParameter<std::vector<std::string> >("ElecFilt")),
     isData_(iConfig.getUntrackedParameter<bool >("isData"))
@@ -573,13 +574,13 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
     iEvent.getByToken(vtxToken_, vertices);
 
     // Get electron collection
-    edm::Handle<reco::GsfElectronCollection> electrons;  // For AODSIM
+    edm::Handle<edm::View<pat::Electron>> electrons;
     iEvent.getByToken(electronToken_, electrons);
 
     // Get photon collection
-    edm::Handle<reco::PhotonCollection> photons;
+    edm::Handle<edm::View<pat::Photon>> photons;
     iEvent.getByToken(photonToken_, photons);
-
+    //#endif
     // Get GenParticle collection
     //   Definition moved --> class variable
     //   edm::Handle<reco::GenParticleCollection> genParticles;
@@ -643,25 +644,12 @@ void SimpleNtuplizer::analyze( const edm::Event& iEvent, const edm::EventSetup& 
     // Loop over electrons
     nElectrons_ = 0;
     nElectronsMatched_ = 0;
-    for (const reco::GsfElectron &el : *electrons) {
+    for (const pat::Electron &el : *electrons) {
+      if (el.superCluster()->clusters()[el.superCluster()->clusters().size()-1].isAvailable() && el.pt() > 10.) { 
         findTag             ( el, (el.superCluster()->rawEnergy()/el.energy()), iEvent, iSetup );
-        setElectronVariables( el, iEvent, iSetup );
-	
-        }
-
-    // Loop over photons
-    nPhotons_ = 0;
-    nPhotonsMatched_ = 0;
-    for (const reco::Photon &photon : *photons) {
-        findTag           ( photon, (photon.superCluster()->rawEnergy()/photon.energy()), iEvent, iSetup );
-        setPhotonVariables( photon, iEvent, iSetup );
-        }
-
-    // Loop over photons
-    nClusters_ = 0;
-    nClustersMatched_ = 0;
-    for (const reco::CaloCluster &cluster : *clusters) {
-      setClusterVariables( cluster, iEvent, iSetup );
+	if (tp_mll < 30) continue; // very conservative so that we can correct
+	setElectronVariables( el, iEvent, iSetup );
+      }
     }
     
     // Fill in the event specific variables

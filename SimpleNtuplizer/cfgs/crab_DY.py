@@ -2,7 +2,7 @@ from CRABClient.UserUtilities import config
 config = config()
 
 # 20 June: First test of saturation variables
-config.General.requestName              = 'DYToEE_NNPDF30_TreeMaker_v3'
+config.General.requestName              = 'aMCatNLODY'
 
 config.General.workArea                 = './'
 config.General.transferOutputs          = True
@@ -12,7 +12,7 @@ config.JobType.pluginName               = 'Analysis'
 config.JobType.psetName                 = 'DY_pset.py'
 config.JobType.allowUndistributedCMSSW  = True
 
-config.Data.inputDataset                = '/DYToEE_NNPDF30_13TeV-powheg-pythia8/RunIISpring16DR80-PUSpring16_80X_mcRun2_asymptotic_2016_v3-v1/AODSIM'
+config.Data.inputDataset                = '/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring16MiniAODv2-PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/MINIAODSIM'
 config.Data.inputDBS                    = 'global'
 config.Data.splitting                   = 'FileBased'
 config.Data.unitsPerJob                 = 5

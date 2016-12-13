@@ -15,7 +15,7 @@ process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc'   , '')
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(15) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 readFiles = cms.untracked.vstring()
 secFiles = cms.untracked.vstring() 
@@ -29,7 +29,9 @@ readFiles.extend([
     # 'file:/afs/cern.ch/work/r/rcoelhol/public/ExampleAODs/DYToEE_NNPDF30_13TeV_powheg_pythia8.root',
 
     # 'file:/afs/cern.ch/work/t/tklijnsm/EGM/AODexamples/DoubleElectron_AODSIM_example.root',
-    'file:/home/users/rclsa/RegressionTraining/newTreeMaker/064BE78B-E707-E611-A991-0025905C5438.root',
+    'file:/home/users/rclsa/RegressionTraining/files/zee/aod/78B2EBCE-18FC-E511-985B-549F3525B154.root',
+    'file:/home/users/rclsa/RegressionTraining/files/zee/aod/8E55A2B0-3FFC-E511-A73F-0CC47A13CBEA.root',
+    'file:/home/users/rclsa/RegressionTraining/files/zee/aod/E6CFDDB6-3FFC-E511-8511-002590D0AF90.root',
 
     ])
 secFiles.extend([

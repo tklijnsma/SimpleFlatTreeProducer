@@ -25,8 +25,9 @@ void SimpleNtuplizer::findTag(
   tp_tagphi = -1;
 
   edm::Handle<edm::TriggerResults> hTrgRes;
-  edm::Handle<trigger::TriggerEvent> hTrgEvt;
+  edm::Handle<pat::TriggerObjectStandAloneCollection> hTrgEvt;
 
+  //  std::cout << "Trying to get trigger info" << std::endl;
   if (isData_) {
 
     // Get trigger information
@@ -36,6 +37,7 @@ void SimpleNtuplizer::findTag(
     // Discard events that did not pass the list of triggers
     const edm::TriggerNames &triggerNames = iEvent.triggerNames(*hTrgRes);  
     for (std::string pattern : elecTrig_) {
+      //      std::cout << pattern.c_str() << std::endl;
       if(edm::is_glob(pattern)) {  // handle pattern with wildcards (*,?)
 	std::vector<std::vector<std::string>::const_iterator> matches = edm::regexMatch(triggerNames.triggerNames(), pattern);
 	if(matches.empty()) {
@@ -44,9 +46,10 @@ void SimpleNtuplizer::findTag(
       }
     }
   }
-  
+
+  //  std::cout << "Trying to get electrons" << std::endl;
   // Get electron collection
-  edm::Handle<reco::GsfElectronCollection> electrons;  // For AODSIM
+  edm::Handle<edm::View<pat::Electron > > electrons;  // For AODSIM
   iEvent.getByToken(electronToken_, electrons);
 
   // Get electron ID decision
@@ -55,7 +58,7 @@ void SimpleNtuplizer::findTag(
 
   // Loop over electrons
   size_t elsIndex = 0;
-  for( reco::GsfElectronCollection::const_iterator el = electrons->begin(); el != electrons->end(); el++, elsIndex++) {
+  for( edm::View<pat::Electron>::const_iterator el = electrons->begin(); el != electrons->end(); el++, elsIndex++) {
 
     // Discard electrons that did not match the trigger object or that did not pass tightID
     bool triggerMatch = false;    
@@ -68,28 +71,36 @@ void SimpleNtuplizer::findTag(
     
     auto electron = (*el);
     passKinematics = electron.pt() > 35. && fabs(electron.eta()) < 1.4;
+    //    std::cout << "pass kinematics " << passKinematics << std::endl;
     if (!passKinematics) continue;
     
-    const edm::Ptr<reco::GsfElectron> elPtr(electrons, el - electrons->begin() );
+    const edm::Ptr<pat::Electron> elPtr(electrons, el - electrons->begin() );
     passID = (*tight_id_decisions)[elPtr];
+    //    std::cout << "pass ID " << passID << std::endl;
     if (!passID) continue;
 
     if (isData_) {
-      for (std::string pattern : elecFilt_) {
-	edm::InputTag filterTag(pattern,"","HLT");
-	if(hTrgEvt->filterIndex(filterTag) < hTrgEvt->sizeFilters()) {
-	  const trigger::TriggerObjectCollection& toc(hTrgEvt->getObjects());
-	  const trigger::Keys& keys(hTrgEvt->filterKeys(hTrgEvt->filterIndex(filterTag)));
-	  
-	  for(size_t hlto=0; hlto<keys.size(); hlto++) {
-	    trigger::size_type hltf = keys[hlto];
-	    const trigger::TriggerObject& tobj(toc[hltf]);
-	    if(reco::deltaR(electron.eta(),electron.phi(),tobj.eta(),tobj.phi()) < 0.2) {
+      pat::TriggerObjectStandAlone TO;
+      const edm::TriggerNames &triggerNames = iEvent.triggerNames(*hTrgRes);
+      for ( uint i = 0; i < hTrgEvt->size(); i++ ) {
+	TO = hTrgEvt->at(i);
+	TO.unpackPathNames(triggerNames);
+
+	bool isTrigger = false;
+	bool isFilter = false;
+	for (std::string pattern : elecTrig_) {	    
+	  if (TO.hasPathName(pattern, false)) { isTrigger = true; break; }
+	}
+	if (!isTrigger) continue;
+	for (std::string pattern : elecFilt_) {
+	  if (TO.hasFilterLabel(pattern)) { isFilter = true; break; }
+	}
+	if (!isFilter) continue;
+	if(reco::deltaR(electron.eta(),electron.phi(),TO.eta(),TO.phi()) < 0.2) {
 	      triggerMatch = true;
-	    }
-	  }
 	}
       }
+      //      std::cout << "pass trigger " << triggerMatch << std::endl;
       if (!triggerMatch) continue;
     }
     

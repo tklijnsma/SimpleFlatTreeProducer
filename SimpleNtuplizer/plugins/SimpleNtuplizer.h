@@ -21,6 +21,8 @@
 
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 #include "DataFormats/EgammaCandidates/interface/Photon.h"
+#include "DataFormats/PatCandidates/interface/Photon.h"
+#include "DataFormats/PatCandidates/interface/Electron.h"
 
 // For the GenPhoton -- Probably only one of these is necessary
 #include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
@@ -63,6 +65,10 @@
 // Needed for saturation variables
 #include "DataFormats/CaloRecHit/interface/CaloCluster.h"
 #include "DataFormats/EcalRecHit/interface/EcalRecHit.h"
+
+//Trigger in miniAOD
+#include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
+#include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
 
 // To calculate the 2x5 variables for electrons
 #include "FWCore/Framework/interface/ESHandle.h"
@@ -114,8 +120,8 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         // Setting tokens
         
         edm::EDGetTokenT<reco::VertexCollection>          vtxToken_;
-        edm::EDGetTokenT<reco::GsfElectronCollection>     electronToken_; // For AODSIM samples
-        edm::EDGetTokenT<reco::PhotonCollection>          photonToken_;
+	edm::EDGetTokenT<edm::View<pat::Electron>>        electronToken_; // For AODSIM samples
+        edm::EDGetTokenT<edm::View<pat::Photon>>          photonToken_;
         edm::EDGetTokenT<reco::GenParticleCollection>     genParticleToken_;
         edm::EDGetTokenT<double>                          rhoToken_; 
 	edm::EDGetTokenT<std::vector<PileupSummaryInfo> > PUInfoToken_;
@@ -129,7 +135,7 @@ class SimpleNtuplizer : public edm::EDAnalyzer {
         // Tokens for T&P
         edm::EDGetTokenT<edm::ValueMap<bool> >        electronTightIdMapToken_;
     	edm::EDGetTokenT<edm::TriggerResults>         HLTTag_token_;   
-    	edm::EDGetTokenT<trigger::TriggerEvent>       HLTObjTag_token_;
+    	edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection>       HLTObjTag_token_;
 
         // =====================================
         // Needed for 2x5 calculations

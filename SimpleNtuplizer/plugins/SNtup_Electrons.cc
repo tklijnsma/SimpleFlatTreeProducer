@@ -5,11 +5,10 @@ void SimpleNtuplizer::setElectronVariables(
         const reco::GsfElectron& electron,
         const edm::Event& iEvent,
         const edm::EventSetup& iSetup ){
-
+  
     using namespace std;
     using namespace edm;
     using namespace reco;
-
 
     // =====================================
     // Gen matching
@@ -311,8 +310,8 @@ void SimpleNtuplizer::setElectronVariables(
     trkMomentumRelError_e  = trkMomentumError_e/trkMomentum_e;
 
     // Other flavours of track error
-    trkMomentumErrorEGM_e = electron.trackMomentumError();
-    trkMomentumErrorCorrected_e = electron.p4Error(electron.corrections().candidateP4Kind);
+    //    trkMomentumErrorEGM_e = electron.trackMomentumError();
+    //    trkMomentumErrorCorrected_e = electron.p4Error(electron.corrections().candidateP4Kind);
 
     // E over P (uncorrected!)
     eOverPuncorr_e = (rawEnergy_e+preshowerEnergy_e)/trkMomentum_e;
