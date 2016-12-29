@@ -305,7 +305,8 @@ void SimpleNtuplizer::setElectronVariables(
     float ptModeErrror = el_track->ptModeError();    
     float etaModeError = el_track->etaModeError();
     // p = pT cosh(eta) -> dp = sqrt ( pTerr^2 * cosh^2(eta) + pT^2 * sinh^2(eta) * etaerr^2)
-    float pModeError   = sqrt(ptModeErrror*ptModeErrror*cosh(trkEta_e)*cosh(trkEta_e) + ptMode*ptMode*sinh(trkEta_e)*sinh(trkEta_e)*etaModeError*etaModeError);
+    // float pModeError   = sqrt(ptModeErrror*ptModeErrror*cosh(trkEta_e)*cosh(trkEta_e) + ptMode*ptMode*sinh(trkEta_e)*sinh(trkEta_e)*etaModeError*etaModeError);
+    float pModeError = std::abs(el_track->qoverpModeError())*trkMomentum_e*trkMomentum_e;
 
     trkMomentumError_e     = pModeError;
     trkMomentumRelError_e  = trkMomentumError_e/trkMomentum_e;
